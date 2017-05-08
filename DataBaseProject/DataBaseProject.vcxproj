@@ -139,7 +139,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Decimal.cpp" />
+    <ClCompile Include="Integer.cpp" />
+    <ClCompile Include="Null.cpp" />
     <ClCompile Include="StartUp.cpp" />
+    <ClCompile Include="Text.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DbType.h" />
+    <ClInclude Include="Decimal.h" />
+    <ClInclude Include="Integer.h" />
+    <ClInclude Include="Null.h" />
+    <ClInclude Include="Text.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
