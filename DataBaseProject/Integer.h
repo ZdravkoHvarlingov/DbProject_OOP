@@ -7,7 +7,7 @@ using db::DbType;
 
 namespace db 
 {
-	class Integer : DbType
+	class Integer : public DbType
 	{
 	public:
 		string GetType() const override;

@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DbTypeFactory.cpp" />
     <ClCompile Include="Decimal.cpp" />
     <ClCompile Include="Integer.cpp" />
     <ClCompile Include="Null.cpp" />
@@ -147,9 +148,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DbType.h" />
+    <ClInclude Include="DbTypeFactory.h" />
     <ClInclude Include="Decimal.h" />
     <ClInclude Include="Integer.h" />
+    <ClInclude Include="MainDbType.h" />
     <ClInclude Include="Null.h" />
+    <ClInclude Include="Row.h" />
     <ClInclude Include="Text.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
