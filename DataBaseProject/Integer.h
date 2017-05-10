@@ -11,8 +11,8 @@ namespace db
 	{
 	public:
 		string GetType() const override;
-		int GetNumber() const;
-		void SetNumber(int _number);
+		int GetValueAsInt() const override;
+		void SetIntValue(int value);
 
 	private:
 		int number;

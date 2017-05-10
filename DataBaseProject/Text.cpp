@@ -5,12 +5,13 @@ string db::Text::GetType() const
 	return "Text";
 }
 
-void db::Text::SetText(string _text)
-{
-	text = _text;
-}
-
-string db::Text::GetText() const
+string db::Text::GetValueAsString() const
 {
 	return text;
 }
+
+void db::Text::SetStringValue(string value)
+{
+	text = value;
+}
+

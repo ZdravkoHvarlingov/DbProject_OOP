@@ -11,8 +11,8 @@ namespace db
 	{
 	public:
 		string GetType() const override;
-		void SetText(string _text);
-		string GetText() const;
+		string GetValueAsString() const override;
+		void SetStringValue(string value);
 
 	private:
 		string text;

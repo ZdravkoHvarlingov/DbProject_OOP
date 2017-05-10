@@ -5,14 +5,14 @@
 
 using db::DbType;
 
-namespace db
+namespace db	
 {
 	class Decimal : public DbType
 	{
 	public:
 		string GetType() const override;
-		double GetDecimal() const;
-		void SetDecimal(double _decimal);
+		double GetValueAsDecimal() const override;
+		void SetDecimalValue(double value) override;
 
 	private:
 		double decimal;

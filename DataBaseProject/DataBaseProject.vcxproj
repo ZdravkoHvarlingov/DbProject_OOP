@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DbType.cpp" />
     <ClCompile Include="DbTypeFactory.cpp" />
     <ClCompile Include="Decimal.cpp" />
     <ClCompile Include="Integer.cpp" />
@@ -152,6 +153,7 @@
     <ClInclude Include="Decimal.h" />
     <ClInclude Include="Integer.h" />
     <ClInclude Include="MainDbType.h" />
+    <ClInclude Include="NotImplementedException.h" />
     <ClInclude Include="Null.h" />
     <ClInclude Include="Row.h" />
     <ClInclude Include="Text.h" />

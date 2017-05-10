@@ -11,6 +11,14 @@ namespace db
 	{
 	public:
 		virtual string GetType() const = 0;
+
+		virtual string GetValueAsString() const;
+		virtual int GetValueAsInt() const;
+		virtual double GetValueAsDecimal() const;
+
+		virtual void SetStringValue(string);
+		virtual void SetIntValue(int);
+		virtual void SetDecimalValue(double);
 	};
 }
 

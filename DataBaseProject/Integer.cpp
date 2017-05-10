@@ -5,12 +5,13 @@ string db::Integer::GetType() const
 	return "Integer";
 }
 
-int db::Integer::GetNumber() const
+int db::Integer::GetValueAsInt() const
 {
 	return number;
 }
 
-void db::Integer::SetNumber(int _number)
+void db::Integer::SetIntValue(int value)
 {
-	number = _number;
+	number = value;
 }
+

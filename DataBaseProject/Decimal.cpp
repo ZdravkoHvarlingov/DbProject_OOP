@@ -5,12 +5,12 @@ string db::Decimal::GetType() const
 	return "Decimal";
 }
 
-double db::Decimal::GetDecimal() const
+double db::Decimal::GetValueAsDecimal() const
 {
 	return decimal;
 }
 
-void db::Decimal::SetDecimal(double _decimal)
+void db::Decimal::SetDecimalValue(double value)
 {
-	decimal = _decimal;
+	decimal = value;
 }
