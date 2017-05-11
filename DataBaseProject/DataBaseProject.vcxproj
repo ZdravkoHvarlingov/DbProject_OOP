@@ -152,6 +152,7 @@
     <ClInclude Include="DbType.h" />
     <ClInclude Include="Decimal.h" />
     <ClInclude Include="Integer.h" />
+    <ClInclude Include="NoHeaderRowException.h" />
     <ClInclude Include="NotImplementedException.h" />
     <ClInclude Include="Null.h" />
     <ClInclude Include="Row.h" />

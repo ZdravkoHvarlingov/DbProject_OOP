@@ -1,7 +1,21 @@
 #include "Table.h"
 #include "Null.h"
+#include "NoHeaderRowException.h"
 
 using db::Null;
+using db::NoHeaderRowException;
+
+db::Table::Table(string _name)
+	: autoIncrement(0)
+{
+	headerCols.push_back(HeaderCol{
+		"Id_auto",
+		"Integer",
+		false
+	});
+
+	SetName(_name);
+}
 
 string db::Table::GetName() const
 {
@@ -13,29 +27,22 @@ void db::Table::SetName(string _name)
 	name = _name;
 }
 
-db::Table::Table(string _name, const vector<string>& _headers)
-{
-	name = _name;
-	headers.insert(headers.end(), _headers.begin(), _headers.end());
-
-	size_t len = _headers.size();
-
-	for (size_t ind = 0; ind < len; ind++)
-	{
-		canBeNullCol.push_back(true);
-	}
-}
-
 void db::Table::MakeNewRow()
 {
+	if (headerCols.size() == 1)
+	{
+		throw NoHeaderRowException("Missing table header row!");
+	}
+
 	Row rowToAdd;
+	rowToAdd.AddColumn((int)autoIncrement);
+	++autoIncrement;
 
-	size_t len = headers.size();
-
+	size_t len = headerCols.size() - 1;
 	for (size_t ind = 0; ind < len; ind++)
 	{
-		Null* nullToAdd = new Null;
-		rowToAdd.AddColumn(nullToAdd);
+		Null* nullToAdd = nullptr;
+		rowToAdd.AddColumn<Null*>(nullToAdd);
 	}
 
 	rows.push_back(rowToAdd);
@@ -43,19 +50,54 @@ void db::Table::MakeNewRow()
 
 void db::Table::MakeNewRow(const Row& _rowToAdd)
 {
-	rows.push_back(_rowToAdd);
+	if (headerCols.size() == 1 || _rowToAdd.GetColmSize() != headerCols.size() - 1)
+	{
+		throw NoHeaderRowException("Missing such table header row!");
+	}
+	Row rowToEnter;
+	rowToEnter.AddColumn((int)autoIncrement);
+	++autoIncrement;
+
+	for (size_t ind = 0; ind < _rowToAdd.GetColmSize(); ind++)
+	{
+		if (_rowToAdd[ind]->GetType() == "Text")
+		{
+			rowToEnter.AddColumn(_rowToAdd[ind]->GetValueAsString());
+		}
+		else if (_rowToAdd[ind]->GetType() == "Decimal")
+		{
+			rowToEnter.AddColumn(_rowToAdd[ind]->GetValueAsDecimal());
+		}
+		else if (_rowToAdd[ind]->GetType() == "Integer")
+		{
+			rowToEnter.AddColumn(_rowToAdd[ind]->GetValueAsInt());
+		}
+		else
+		{
+			Null* ptr = nullptr;
+			rowToEnter.AddColumn<Null*>(ptr);
+		}
+	}
+
+	rows.push_back(rowToEnter);
 }
 
-void db::Table::AddNewColumn(string colHeader)
+void db::Table::AddNewColumn(string _colName, string _colType, bool _canBeNull = true)
 {
-	headers.push_back(colHeader);
-	canBeNullCol.push_back(true);
+	HeaderCol headerColToAdd = {
+		_colName,
+		_colType,
+		_canBeNull
+	};
+
+	headerCols.push_back(headerColToAdd);
 }
 
 void db::Table::SetColNullExceptance(bool value, size_t _index)
 {
 	//exception to implement: OutOfRangeException
-	canBeNullCol[_index] = value;
+
+	headerCols[_index].CanBeNull = value;
 }
 
 Row & db::Table::operator[](size_t ind)
@@ -67,10 +109,12 @@ Row & db::Table::operator[](size_t ind)
 
 ostream & db::operator<<(ostream & outStr, const Table & tableToDisplay)
 {
-	size_t hCount = tableToDisplay.headers.size();
+	outStr << "Table name: " << tableToDisplay.name << '\n';
+	size_t hCount = tableToDisplay.headerCols.size();
 	for (size_t ind = 0; ind < hCount; ind++)
 	{
-		outStr << tableToDisplay.headers[ind] << " ";
+		outStr << tableToDisplay.headerCols[ind].headerName <<
+			"<" << tableToDisplay.headerCols[ind].headerType << ">" << " ";
 	}
 
 	outStr << '\n';

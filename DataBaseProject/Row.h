@@ -55,7 +55,8 @@ namespace db
 	template<>
 	inline void Row::AddColumn(Null* value)
 	{
-		columns.push_back(value);
+		Null* nullToAdd = new Null;
+		columns.push_back(nullToAdd);
 
 		++colSize;
 	}
