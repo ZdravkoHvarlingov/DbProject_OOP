@@ -30,10 +30,13 @@
     <ClCompile Include="Null.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DbTypeFactory.cpp">
+    <ClCompile Include="DbType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DbType.cpp">
+    <ClCompile Include="Row.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Table.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,13 +59,10 @@
     <ClInclude Include="Row.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MainDbType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DbTypeFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="NotImplementedException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Table.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

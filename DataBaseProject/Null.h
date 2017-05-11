@@ -11,6 +11,7 @@ namespace db
 	{
 	public:
 		string GetType() const override;
+		string GetValueAsString() const override;
 	};
 }
 
