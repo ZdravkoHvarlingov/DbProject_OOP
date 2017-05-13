@@ -142,7 +142,6 @@
     <ClCompile Include="DbType.cpp" />
     <ClCompile Include="Decimal.cpp" />
     <ClCompile Include="Integer.cpp" />
-    <ClCompile Include="Null.cpp" />
     <ClCompile Include="Row.cpp" />
     <ClCompile Include="StartUp.cpp" />
     <ClCompile Include="Table.cpp" />
@@ -155,7 +154,6 @@
     <ClInclude Include="Integer.h" />
     <ClInclude Include="NoHeaderRowException.h" />
     <ClInclude Include="NotImplementedException.h" />
-    <ClInclude Include="Null.h" />
     <ClInclude Include="Row.h" />
     <ClInclude Include="Table.h" />
     <ClInclude Include="Text.h" />
