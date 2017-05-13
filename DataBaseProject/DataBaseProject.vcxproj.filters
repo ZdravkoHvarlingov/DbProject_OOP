@@ -68,5 +68,8 @@
     <ClInclude Include="NoHeaderRowException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="InconsistentTypesException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

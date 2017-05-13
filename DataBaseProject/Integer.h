@@ -10,10 +10,14 @@ namespace db
 	class Integer : public DbType
 	{
 	public:
+		Integer();
 		string GetType() const override;
 		int GetValueAsInt() const override;
 		void SetIntValue(int value);
-
+		
+		// Inherited via DbType
+		virtual void Serialize(ostream & outStr) const override;
+	
 	private:
 		int number;
 	};

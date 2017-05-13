@@ -10,9 +10,13 @@ namespace db
 	class Text : public DbType
 	{
 	public:
+		Text();
 		string GetType() const override;
 		string GetValueAsString() const override;
 		void SetStringValue(string value);
+
+		// Inherited via DbType
+		virtual void Serialize(ostream & outStr) const override;
 
 	private:
 		string text;

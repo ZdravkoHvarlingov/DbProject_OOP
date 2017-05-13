@@ -14,21 +14,5 @@ using db::Table;
 
 int main()
 {
-	Row test;
 
-	test.AddColumn<string>("stringName");
-	test.AddColumn<int>(10);
-
-	Table tbl("TestTable");
-	tbl.AddNewColumn("name", "Text", true);
-	tbl.AddNewColumn("age", "Integer", true);
-
-	tbl.MakeNewRow();
-	tbl.MakeNewRow(test);
-
-
-	///table.DeleteRow();
-	///
-
-	cout << tbl;
 }

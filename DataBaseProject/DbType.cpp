@@ -1,6 +1,16 @@
 #include "DbType.h"
 #include "NotImplementedException.h"
 
+void db::DbType::SetNull()
+{
+	isNull = true;
+}
+
+bool db::DbType::CheckIfValueIsNull() const
+{
+	return isNull;
+}
+
 string db::DbType::GetValueAsString() const
 {
 	throw NotImplementedException("No suitable conversation to string!");
@@ -29,4 +39,9 @@ void db::DbType::SetIntValue(int value)
 void db::DbType::SetDecimalValue(double value)
 {
 	throw NotImplementedException("No getter for a decimal value!");
+}
+
+void db::DbType::MakeValueNotNull()
+{
+	isNull = false;
 }

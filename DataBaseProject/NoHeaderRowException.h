@@ -25,4 +25,4 @@ namespace db
 		string msg;
 	};
 }
-#endif // !NOT_IMPLEMENTED_EXCEPTION
+#endif // !NO_HEADERROW_EXCEPTION

@@ -1,11 +1,28 @@
 #include "Row.h"
 
+void db::Row::AddNullColumn(string type)
+{
+	DbType* colToAdd;
+	if (type == "Decimal")
+	{
+		colToAdd = new Decimal;
+	}
+	else if (type == "Integer")
+	{
+		colToAdd = new Integer;
+	}
+	else colToAdd = new Text;
+
+	columns.push_back(colToAdd);
+	++colSize;
+}
+
 DbType* & db::Row::operator[](size_t index)
 {
 	return columns[index];
 }
 
-DbType* db::Row::operator[](size_t index) const
+const DbType* const & db::Row::operator[](size_t index) const
 {
 	return columns[index];
 }
@@ -41,6 +58,33 @@ db::Row::~Row()
 	ReleaseMemory();
 }
 
+void db::Row::PushToColumns(DbType * _cellToAdd, int ind)
+{
+	if (ind == -1 || ind == columns.size())
+	{
+		columns.push_back(_cellToAdd);
+	}	
+	else if(ind >= 0 && ind < columns.size())
+	{
+		vector<DbType*> result;
+
+		for (size_t index = 0; index < ind; index++)
+		{
+			result.push_back(columns[index]);
+		}
+		result.push_back(_cellToAdd);
+		for (size_t index = ind; index < colSize; index++)
+		{
+			result.push_back(columns[index]);
+		}
+
+		columns = result;
+	}
+	else return;
+
+	++colSize;
+}
+
 void db::Row::ReleaseMemory()
 {
 	size_t len = columns.size();
@@ -51,7 +95,7 @@ void db::Row::ReleaseMemory()
 	}
 }
 
-void db::Row::CopyInfo(const Row & other)
+void db::Row::CopyInfo(const Row & other) // a better polymorphism way?
 {
 	for (size_t ind = 0; ind < other.colSize; ind++)
 	{
@@ -63,14 +107,14 @@ void db::Row::CopyInfo(const Row & other)
 		{
 			AddColumn(other.columns[ind]->GetValueAsDecimal());
 		}
-		else if (other.columns[ind]->GetType() == "Integer")
+		else
 		{
 			AddColumn(other.columns[ind]->GetValueAsInt());
 		}
-		else
+
+		if (other.columns[ind]->CheckIfValueIsNull())
 		{
-			Null* nullpt = new Null;
-			AddColumn(nullpt);
+			columns[ind]->SetNull();
 		}
 	}
 }
@@ -79,18 +123,7 @@ ostream & db::operator<<(ostream & outStr, const Row & rowToDisplay)
 {
 	for (size_t ind = 0; ind < rowToDisplay.colSize; ind++)
 	{
-		if (rowToDisplay[ind]->GetType() == "Decimal")
-		{
-			outStr << rowToDisplay[ind]->GetValueAsDecimal() << " ";
-		}
-		else if (rowToDisplay[ind]->GetType() == "Integer")
-		{
-			outStr << rowToDisplay[ind]->GetValueAsInt() << " ";
-		}
-		else// if (rowToDisplay[ind]->GetType() == "Text")
-		{
-			outStr << rowToDisplay[ind]->GetValueAsString() << " ";
-		}
+		rowToDisplay[ind]->Serialize(outStr);
 	}
 
 	return outStr;

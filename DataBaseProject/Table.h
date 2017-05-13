@@ -2,8 +2,10 @@
 #define DB_TABLE
 
 #include "Row.h"
+#include "InconsistentTypesException.h"
 
 using db::Row;
+using db::InconsistentTypesException;
 
 namespace db
 {
@@ -16,7 +18,11 @@ namespace db
 		void SetName(string _name);
 		void MakeNewRow();
 		void MakeNewRow(const Row& _rowToAdd);
-		void AddNewColumn(string _colName, string _colType, bool _canBeNull);
+		void AddNewColumn(string _colName, string _colType);  //, bool _canBeNull);
+
+		template<typename T>
+		void ChangeCell(size_t row, size_t col, T value, string type);
+
 		void SetColNullExceptance(bool value, size_t _index);
 		Row& operator[](size_t ind);
 
@@ -36,6 +42,16 @@ namespace db
 		vector<HeaderCol> headerCols;
 		size_t autoIncrement;
 	};
+	template<typename T>
+	inline void Table::ChangeCell(size_t row, size_t col, T value, string type)
+	{
+		if (type != headerCols[col].headerType)
+		{
+			throw InconsistentTypesException("Can not implicit convert" + type + " to " + headerCols[col].headerType);
+		}
+
+		rows[row].ChangeColumn(value, col);
+	}
 }
 
 #endif // !DB_TABLE

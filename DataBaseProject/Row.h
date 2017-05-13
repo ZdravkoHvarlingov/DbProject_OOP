@@ -26,10 +26,15 @@ namespace db
 	public:
 
 		template <typename T>
-		void AddColumn(T value);
+		void AddColumn(T value, int position = -1);
+
+		template <typename T>
+		void ChangeColumn(T value, size_t pos);
+
+		void AddNullColumn(string type);
 
 		DbType*& operator[] (size_t index);
-		DbType* operator[] (size_t index) const;
+		const DbType* const &  operator[] (size_t index) const;
 		size_t GetColmSize() const;
 		friend ostream& operator << (ostream& outStr, const Row& rowToDisplay);
 
@@ -40,6 +45,7 @@ namespace db
 
 	private:
 
+		void PushToColumns(DbType* _cellToAdd, int _ind);
 		void ReleaseMemory();
 		void CopyInfo(const Row& other);
 		size_t colSize = 0;
@@ -47,48 +53,63 @@ namespace db
 	};
 
 	template<typename T>
-	inline void Row::AddColumn(T value)
+	inline void Row::ChangeColumn(T value, size_t pos)
 	{
-		throw NotImplementedException("No add column method implemented!"); //Maybe NULL implementation here
+		throw NotImplementedException("No change column method implemented!");
 	}
 
 	template<>
-	inline void Row::AddColumn(Null* value)
+	inline void Row::ChangeColumn(int value, size_t pos)
 	{
-		Null* nullToAdd = new Null;
-		columns.push_back(nullToAdd);
-
-		++colSize;
+		//OutOfRangeException?!
+		columns[pos]->SetIntValue(value);
 	}
 
 	template<>
-	inline void Row::AddColumn(int value)
+	inline void Row::ChangeColumn(double value, size_t pos)
+	{
+		//OutOfRangeException?!
+		columns[pos]->SetDecimalValue(value);
+	}
+
+	template<>
+	inline void Row::ChangeColumn(string value, size_t pos)
+	{
+		//OutOfRangeException?!
+		columns[pos]->SetStringValue(value);
+	}
+
+	template<typename T>
+	inline void Row::AddColumn(T value, int position)
+	{
+		throw NotImplementedException("No add column method implemented!");
+	}
+
+	template<>
+	inline void Row::AddColumn(int value, int position)
 	{
 		DbType* cellToAdd = new Integer;
 		cellToAdd->SetIntValue(value);
-		columns.push_back(cellToAdd);
-
-		++colSize;
+		
+		PushToColumns(cellToAdd, position);
 	}
 
 	template<>
-	inline void Row::AddColumn(double value)
+	inline void Row::AddColumn(double value, int position)
 	{
 		DbType* cellToAdd = new Decimal;
 		cellToAdd->SetDecimalValue(value);
-		columns.push_back(cellToAdd);
 		
-		++colSize;
+		PushToColumns(cellToAdd, position);
 	}
 
 	template<>
-	inline void Row::AddColumn(string value)
+	inline void Row::AddColumn(string value, int position)
 	{
 		DbType* cellToAdd = new Text;
 		cellToAdd->SetStringValue(value);
-		columns.push_back(cellToAdd);
 		
-		++colSize;
+		PushToColumns(cellToAdd, position);
 	}
 }
 

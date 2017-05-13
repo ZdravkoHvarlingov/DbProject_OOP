@@ -1,6 +1,7 @@
 #include "Table.h"
 #include "Null.h"
 #include "NoHeaderRowException.h"
+#include <iostream>
 
 using db::Null;
 using db::NoHeaderRowException;
@@ -41,8 +42,7 @@ void db::Table::MakeNewRow()
 	size_t len = headerCols.size() - 1;
 	for (size_t ind = 0; ind < len; ind++)
 	{
-		Null* nullToAdd = nullptr;
-		rowToAdd.AddColumn<Null*>(nullToAdd);
+		rowToAdd.AddNullColumn(headerCols[ind + 1].headerType);
 	}
 
 	rows.push_back(rowToAdd);
@@ -54,43 +54,29 @@ void db::Table::MakeNewRow(const Row& _rowToAdd)
 	{
 		throw NoHeaderRowException("Missing such table header row!");
 	}
-	Row rowToEnter;
-	rowToEnter.AddColumn((int)autoIncrement);
-	++autoIncrement;
 
-	for (size_t ind = 0; ind < _rowToAdd.GetColmSize(); ind++)
-	{
-		if (_rowToAdd[ind]->GetType() == "Text")
-		{
-			rowToEnter.AddColumn(_rowToAdd[ind]->GetValueAsString());
-		}
-		else if (_rowToAdd[ind]->GetType() == "Decimal")
-		{
-			rowToEnter.AddColumn(_rowToAdd[ind]->GetValueAsDecimal());
-		}
-		else if (_rowToAdd[ind]->GetType() == "Integer")
-		{
-			rowToEnter.AddColumn(_rowToAdd[ind]->GetValueAsInt());
-		}
-		else
-		{
-			Null* ptr = nullptr;
-			rowToEnter.AddColumn<Null*>(ptr);
-		}
-	}
+	Row rowToEnter = _rowToAdd;
+	rowToEnter.AddColumn((int)autoIncrement, 0);
+	++autoIncrement;
 
 	rows.push_back(rowToEnter);
 }
 
-void db::Table::AddNewColumn(string _colName, string _colType, bool _canBeNull = true)
+void db::Table::AddNewColumn(string _colName, string _colType)  //, bool _canBeNull = true)
 {
 	HeaderCol headerColToAdd = {
 		_colName,
 		_colType,
-		_canBeNull
+		true
 	};
 
 	headerCols.push_back(headerColToAdd);
+
+	size_t rowsCount = rows.size();
+	for (size_t ind = 0; ind < rowsCount; ind++)
+	{
+		rows[ind].AddNullColumn(_colType);
+	}
 }
 
 void db::Table::SetColNullExceptance(bool value, size_t _index)
