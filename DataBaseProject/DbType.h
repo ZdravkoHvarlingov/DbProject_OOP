@@ -12,7 +12,7 @@ namespace db
 	class DbType
 	{
 	public:
-		virtual string GetType() const = 0;
+		virtual const char* GetType() const = 0;
 		void SetNull();
 		bool CheckIfValueIsNull() const;
 		virtual void Serialize(ostream& outStr) const = 0;

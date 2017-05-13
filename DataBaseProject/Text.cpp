@@ -5,7 +5,7 @@ db::Text::Text()
 	SetNull();
 }
 
-string db::Text::GetType() const
+const char* db::Text::GetType() const
 {
 	return "Text";
 }

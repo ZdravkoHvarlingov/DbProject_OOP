@@ -30,6 +30,7 @@ namespace db
 		void ChangeColumn(T value, size_t pos);
 
 		void AddNullColumn(string type);
+		void DeleteColumn(size_t _ind);
 
 		DbType*& operator[] (size_t index);
 		const DbType* const &  operator[] (size_t index) const;
@@ -77,6 +78,13 @@ namespace db
 		columns[pos]->SetStringValue(value);
 	}
 
+	template<>
+	inline void Row::ChangeColumn(const char* value, size_t pos)
+	{
+		//OutOfRangeException?!
+		columns[pos]->SetStringValue(value);
+	}
+
 	template<typename T>
 	inline void Row::AddColumn(T value, int position)
 	{
@@ -107,6 +115,15 @@ namespace db
 		DbType* cellToAdd = new Text;
 		cellToAdd->SetStringValue(value);
 		
+		PushToColumns(cellToAdd, position);
+	}
+
+	template<>
+	inline void Row::AddColumn(const char* value, int position)
+	{
+		DbType* cellToAdd = new Text;
+		cellToAdd->SetStringValue(value);
+
 		PushToColumns(cellToAdd, position);
 	}
 }

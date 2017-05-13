@@ -1,5 +1,6 @@
 #include "Table.h"
 #include "NoHeaderRowException.h"
+#include "InconsistentTypesException.h"
 #include <iostream>
 
 using db::NoHeaderRowException;
@@ -19,6 +20,24 @@ db::Table::Table(string _name)
 string db::Table::GetName() const
 {
 	return name;
+}
+
+string db::Table::GetDescription() const
+{
+	string result = "";
+	size_t len = headerCols.size();
+
+	for (size_t ind = 0; ind < len; ind++)
+	{
+		result += headerCols[ind].headerName + " <" + headerCols[ind].headerType + ">";
+		
+		if (ind != len - 1)
+		{
+			result += ", ";
+		}
+	}
+
+	return result;
 }
 
 void db::Table::SetName(string _name)
@@ -54,6 +73,20 @@ void db::Table::MakeNewRow(const Row& _rowToAdd)
 	}
 
 	Row rowToEnter = _rowToAdd;
+	for (size_t ind = 0; ind < headerCols.size() - 1; ind++)
+	{
+		if (rowToEnter[ind]->GetType() != headerCols[ind + 1].headerType)
+		{
+			if (rowToEnter[ind]->GetType() == "Integer" && headerCols[ind + 1].headerType == "Decimal") //double and int problem(autocast)
+			{
+				int value = rowToEnter[ind]->GetValueAsInt();
+				rowToEnter.DeleteColumn(ind);
+				rowToEnter.AddColumn<double>(value, ind);
+			}
+			else throw InconsistentTypesException("Can not convert types");
+		}
+	}
+
 	rowToEnter.AddColumn((int)autoIncrement, 0);
 	++autoIncrement;
 
@@ -77,18 +110,20 @@ void db::Table::AddNewColumn(string _colName, string _colType)  //, bool _canBeN
 	}
 }
 
+void db::Table::SetNullCell(size_t row, size_t col)
+{
+	if (headerCols[col].CanBeNull)
+	{
+		rows[row][col]->SetNull();
+	}
+	//else throw exception ... TO BE IMPLEMENTED
+}
+
 void db::Table::SetColNullExceptance(bool value, size_t _index)
 {
 	//exception to implement: OutOfRangeException
 
 	headerCols[_index].CanBeNull = value;
-}
-
-Row & db::Table::operator[](size_t ind)
-{
-	//OutOfRangeException?!
-
-	return rows[ind];
 }
 
 ostream & db::operator<<(ostream & outStr, const Table & tableToDisplay)

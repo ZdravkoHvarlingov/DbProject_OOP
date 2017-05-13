@@ -17,6 +17,19 @@ void db::Row::AddNullColumn(string type)
 	++colSize;
 }
 
+void db::Row::DeleteColumn(size_t _ind)
+{
+	delete columns[_ind];
+
+	for (size_t ind = _ind + 1; ind < colSize; ind++)
+	{
+		columns[ind - 1] = columns[ind];
+	}
+	
+	colSize--;
+	columns.resize(colSize);
+}
+
 DbType* & db::Row::operator[](size_t index)
 {
 	return columns[index];
@@ -47,6 +60,9 @@ db::Row & db::Row::operator=(const Row & other)
 	if (this != &other)
 	{
 		ReleaseMemory();
+		colSize = 0;
+		columns.clear();
+
 		CopyInfo(other);
 	}
 

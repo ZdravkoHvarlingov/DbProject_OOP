@@ -5,7 +5,7 @@ db::Integer::Integer()
 	SetNull();
 }
 
-string db::Integer::GetType() const
+const char* db::Integer::GetType() const
 {
 	return "Integer";
 }

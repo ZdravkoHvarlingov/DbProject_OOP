@@ -5,7 +5,7 @@ db::Decimal::Decimal()
 	SetNull();
 }
 
-string db::Decimal::GetType() const
+const char* db::Decimal::GetType() const
 {
 	return "Decimal";
 }

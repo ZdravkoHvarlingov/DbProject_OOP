@@ -11,7 +11,7 @@ namespace db
 	{
 	public:
 		Decimal();
-		string GetType() const override;
+		const char* GetType() const override;
 		double GetValueAsDecimal() const override;
 		void SetDecimalValue(double value) override;
 		

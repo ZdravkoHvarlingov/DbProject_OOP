@@ -15,16 +15,17 @@ namespace db
 
 		Table(string _name);
 		string GetName() const;
+		string GetDescription() const;
 		void SetName(string _name);
 		void MakeNewRow();
 		void MakeNewRow(const Row& _rowToAdd);
 		void AddNewColumn(string _colName, string _colType);  //, bool _canBeNull);
 
 		template<typename T>
-		void ChangeCell(size_t row, size_t col, T value, string type);
+		void ChangeCell(size_t row, size_t col, T value);
 
+		void SetNullCell(size_t row, size_t col);
 		void SetColNullExceptance(bool value, size_t _index);
-		Row& operator[](size_t ind);
 
 		friend ostream& operator << (ostream& outStr, const Table& tableToDisplay);
 
@@ -42,15 +43,28 @@ namespace db
 		vector<HeaderCol> headerCols;
 		size_t autoIncrement;
 	};
-	template<typename T>
-	inline void Table::ChangeCell(size_t row, size_t col, T value, string type)
-	{
-		if (type != headerCols[col].headerType)
-		{
-			throw InconsistentTypesException("Can not implicit convert" + type + " to " + headerCols[col].headerType);
-		}
 
-		rows[row].ChangeColumn(value, col);
+	template<>
+	inline void Table::ChangeCell(size_t row, size_t col, int value)
+	{
+		if (headerCols[col].headerType == "Decimal")
+		{
+			rows[row].ChangeColumn<double>(value, col);
+		}
+		else rows[row].ChangeColumn(value, col);
+	}
+
+	template<typename T>
+	inline void Table::ChangeCell(size_t row, size_t col, T value)
+	{
+		try
+		{
+			rows[row].ChangeColumn(value, col);
+		}
+		catch (const std::exception&)
+		{
+			throw InconsistentTypesException("Can not implicit convert");
+		}		
 	}
 }
 
