@@ -7,7 +7,6 @@
 #include "Integer.h"
 #include "Decimal.h"
 #include "Text.h"
-#include "Null.h"
 #include <iostream>
 
 using std::ostream;
@@ -17,7 +16,6 @@ using db::Decimal;
 using db::Text;
 using db::Integer;
 using db::NotImplementedException;
-using db::Null;
 
 namespace db
 {

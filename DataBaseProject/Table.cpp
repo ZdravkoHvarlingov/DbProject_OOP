@@ -1,9 +1,7 @@
 #include "Table.h"
-#include "Null.h"
 #include "NoHeaderRowException.h"
 #include <iostream>
 
-using db::Null;
 using db::NoHeaderRowException;
 
 db::Table::Table(string _name)
