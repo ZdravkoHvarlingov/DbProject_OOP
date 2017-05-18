@@ -22,6 +22,7 @@ namespace db
 		void AddNewColumn(const string& _colName,const string& _colType);  //, bool _canBeNull);
 		void DeleteRow(size_t rowIndex);
 
+		size_t CountCertainRows(size_t colToSearch, DbType* elementToSearch) const;
 		void DeleteCertainRows(size_t colToSearch, DbType* elementToSearch);
 		void UpdateCertainRows(size_t colToSearch, DbType* elementToSearch, size_t colToChange, DbType* valueToSet);
 

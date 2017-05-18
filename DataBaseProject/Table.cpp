@@ -115,6 +115,23 @@ void db::Table::DeleteRow(size_t rowIndex)
 	rows.erase(rows.begin() + rowIndex);
 }
 
+size_t db::Table::CountCertainRows(size_t colToSearch, DbType * elementToSearch) const
+{
+	size_t rowsCount = rows.size();
+
+	size_t counter = 0;
+
+	for (size_t ind = 0; ind < rowsCount; ind++)
+	{
+		if (rows[ind][colToSearch]->AreEqual(elementToSearch))
+		{
+			counter++;
+		}
+	}
+
+	return counter;
+}
+
 void db::Table::DeleteCertainRows(size_t colToSearch, DbType * elementToSearch)
 {
 	size_t rowsCount = rows.size();
