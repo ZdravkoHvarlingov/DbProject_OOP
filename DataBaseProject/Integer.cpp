@@ -34,8 +34,9 @@ bool db::Integer::AreEqual(DbType * other) const
 		throw db::InconsistentTypesException("Cannot implicit convert to Integer");
 	}
 
-	else return other->GetValueAsInt() == number &&
-		other->CheckIfValueIsNull() == CheckIfValueIsNull();
+	else return (other->CheckIfValueIsNull() && CheckIfValueIsNull()) ||
+		(other->GetValueAsInt() == number &&
+		other->CheckIfValueIsNull() == CheckIfValueIsNull());
 }
 
 void db::Integer::Serialize(ostream & outStr) const

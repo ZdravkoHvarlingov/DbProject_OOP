@@ -33,8 +33,9 @@ bool db::Decimal::AreEqual(DbType * other) const
 		throw db::InconsistentTypesException("Cannot implicit convert to Decimal");
 	}
 
-	else return fabs(other->GetValueAsDecimal() - decimal) < 0.00001 &&
-		other->CheckIfValueIsNull() == CheckIfValueIsNull();
+	else return (other->CheckIfValueIsNull() && CheckIfValueIsNull()) ||
+		(fabs(other->GetValueAsDecimal() - decimal) < 0.00001 &&
+		other->CheckIfValueIsNull() == CheckIfValueIsNull());
 }
 
 void db::Decimal::Serialize(ostream & outStr) const

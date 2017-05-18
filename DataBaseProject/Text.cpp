@@ -34,8 +34,9 @@ bool db::Text::AreEqual(DbType * other) const
 		throw db::InconsistentTypesException("Can not implicit convert to Text");
 	}
 
-	return text == other->GetValueAsString() &&
-		CheckIfValueIsNull() == other->CheckIfValueIsNull();
+	return (other->CheckIfValueIsNull() && CheckIfValueIsNull()) ||
+		(text == other->GetValueAsString() &&
+		CheckIfValueIsNull() == other->CheckIfValueIsNull());
 }
 
 void db::Text::Serialize(ostream & outStr) const
@@ -44,7 +45,7 @@ void db::Text::Serialize(ostream & outStr) const
 	{
 		outStr << "NULL ";
 	}
-	else outStr << GetValueAsString() << " ";
+	else outStr << "\"" << GetValueAsString() << "\" ";
 }
 
 void db::Text::CopyValueFrom(DbType * other)
