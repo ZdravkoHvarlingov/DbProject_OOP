@@ -36,6 +36,9 @@
     <ClCompile Include="Table.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DbTypeFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DbType.h">
@@ -63,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="InconsistentTypesException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DbTypeFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -26,8 +26,7 @@ namespace db
 		void DeleteCertainRows(size_t colToSearch, DbType* elementToSearch);
 		void UpdateCertainRows(size_t colToSearch, DbType* elementToSearch, size_t colToChange, DbType* valueToSet);
 
-		template<typename T>
-		void ChangeCell(size_t row, size_t col, T value);
+		void ChangeCell(size_t row, size_t col, DbType* value);
 
 		void SetNullCell(size_t row, size_t col);
 		void SetColNullExceptance(bool value, size_t _index);
@@ -48,29 +47,6 @@ namespace db
 		vector<HeaderCol> headerCols;
 		size_t autoIncrement;
 	};
-
-	template<>
-	inline void Table::ChangeCell(size_t row, size_t col, int value)
-	{
-		if (headerCols[col].headerType == "Decimal")
-		{
-			rows[row].ChangeColumn<double>(value, col);
-		}
-		else rows[row].ChangeColumn(value, col);
-	}
-
-	template<typename T>
-	inline void Table::ChangeCell(size_t row, size_t col, T value)
-	{
-		try
-		{
-			rows[row].ChangeColumn(value, col);
-		}
-		catch (const std::exception&)
-		{
-			throw InconsistentTypesException("Can not implicit convert");
-		}		
-	}
 }
 
 #endif // !DB_TABLE

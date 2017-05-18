@@ -1,33 +1,40 @@
 #include "Row.h"
+#include "DbTypeFactory.h"
 
-void db::Row::AddNullColumn(string type)
+using db::DbTypeFactory;
+
+void db::Row::AddColumn(DbType * columnToAdd, int position)
 {
-	DbType* colToAdd;
-	if (type == "Decimal")
-	{
-		colToAdd = new Decimal;
-	}
-	else if (type == "Integer")
-	{
-		colToAdd = new Integer;
-	}
-	else colToAdd = new Text;
+	DbType* colToAdd = DbTypeFactory::GetNewType(columnToAdd->GetType());
+	colToAdd->CopyValueFrom(columnToAdd);
+
+	PushToColumns(colToAdd, position);
+}
+
+void db::Row::ChangeColumnValue(size_t index, DbType * newValue)
+{
+	columns[index]->CopyValueFrom(newValue);
+}
+
+void db::Row::AddNullColumn(const string& type)
+{
+	DbType* colToAdd = DbTypeFactory::GetNewType(type.c_str());
 
 	columns.push_back(colToAdd);
-	++colSize;
 }
 
 void db::Row::DeleteColumn(size_t _ind)
 {
+	size_t cols = columns.size();
+
 	delete columns[_ind];
 
-	for (size_t ind = _ind + 1; ind < colSize; ind++)
+	for (size_t ind = _ind + 1; ind < cols; ind++)
 	{
 		columns[ind - 1] = columns[ind];
 	}
 	
-	colSize--;
-	columns.resize(colSize);
+	columns.resize(cols - 1);
 }
 
 DbType* & db::Row::operator[](size_t index)
@@ -42,13 +49,10 @@ const DbType* const & db::Row::operator[](size_t index) const
 
 size_t db::Row::GetColmSize() const
 {
-	return colSize;
+	return columns.size();
 }
 
-db::Row::Row() 
-	: colSize(0)
-{
-}
+db::Row::Row(){}
 
 db::Row::Row(const Row & other)
 {
@@ -60,9 +64,7 @@ db::Row & db::Row::operator=(const Row & other)
 	if (this != &other)
 	{
 		ReleaseMemory();
-		colSize = 0;
 		columns.clear();
-
 		CopyInfo(other);
 	}
 
@@ -76,11 +78,13 @@ db::Row::~Row()
 
 void db::Row::PushToColumns(DbType * _cellToAdd, int ind)
 {
-	if (ind == -1 || ind == columns.size())
+	size_t length = columns.size();
+
+	if (ind == -1 || ind == length)
 	{
 		columns.push_back(_cellToAdd);
 	}	
-	else if(ind >= 0 && ind < columns.size())
+	else if(ind >= 0 && ind < length)
 	{
 		vector<DbType*> result;
 
@@ -89,16 +93,14 @@ void db::Row::PushToColumns(DbType * _cellToAdd, int ind)
 			result.push_back(columns[index]);
 		}
 		result.push_back(_cellToAdd);
-		for (size_t index = ind; index < colSize; index++)
+		for (size_t index = ind; index < length; index++)
 		{
 			result.push_back(columns[index]);
 		}
 
 		columns = result;
 	}
-	else return;
-
-	++colSize;
+	//maybe out of range for the index?
 }
 
 void db::Row::ReleaseMemory()
@@ -111,33 +113,20 @@ void db::Row::ReleaseMemory()
 	}
 }
 
-void db::Row::CopyInfo(const Row & other) // a better polymorphism way?
+void db::Row::CopyInfo(const Row & other)
 {
-	for (size_t ind = 0; ind < other.colSize; ind++)
-	{
-		if (other.columns[ind]->GetType() == "Text")
-		{
-			AddColumn(other.columns[ind]->GetValueAsString());
-		}
-		else if (other.columns[ind]->GetType() == "Decimal")
-		{
-			AddColumn(other.columns[ind]->GetValueAsDecimal());
-		}
-		else
-		{
-			AddColumn(other.columns[ind]->GetValueAsInt());
-		}
+	size_t len = other.columns.size();
 
-		if (other.columns[ind]->CheckIfValueIsNull())
-		{
-			columns[ind]->SetNull();
-		}
+	for (size_t ind = 0; ind < len; ind++)
+	{
+		AddColumn(other.columns[ind]);
 	}
 }
 
 ostream & db::operator<<(ostream & outStr, const Row & rowToDisplay)
 {
-	for (size_t ind = 0; ind < rowToDisplay.colSize; ind++)
+	size_t colSize = rowToDisplay.columns.size();
+	for (size_t ind = 0; ind < colSize; ind++)
 	{
 		rowToDisplay[ind]->Serialize(outStr);
 	}

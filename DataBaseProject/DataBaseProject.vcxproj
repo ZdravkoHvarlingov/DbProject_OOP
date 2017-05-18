@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DbType.cpp" />
+    <ClCompile Include="DbTypeFactory.cpp" />
     <ClCompile Include="Decimal.cpp" />
     <ClCompile Include="Integer.cpp" />
     <ClCompile Include="Row.cpp" />
@@ -149,6 +150,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DbType.h" />
+    <ClInclude Include="DbTypeFactory.h" />
     <ClInclude Include="Decimal.h" />
     <ClInclude Include="InconsistentTypesException.h" />
     <ClInclude Include="Integer.h" />

@@ -52,8 +52,11 @@ void db::Table::MakeNewRow()
 		throw NoHeaderRowException("Missing table header row!");
 	}
 
+	Integer autoCol;
+	autoCol.SetIntValue(autoIncrement);
+
 	Row rowToAdd;
-	rowToAdd.AddColumn((int)autoIncrement);
+	rowToAdd.AddColumn(&autoCol);
 	++autoIncrement;
 
 	size_t len = headerCols.size() - 1;
@@ -77,17 +80,14 @@ void db::Table::MakeNewRow(const Row& _rowToAdd)
 	{
 		if (rowToEnter[ind]->GetType() != headerCols[ind + 1].headerType)
 		{
-			if (rowToEnter[ind]->GetType() == "Integer" && headerCols[ind + 1].headerType == "Decimal") //double and int problem(autocast)
-			{
-				int value = rowToEnter[ind]->GetValueAsInt();
-				rowToEnter.DeleteColumn(ind);
-				rowToEnter.AddColumn<double>(value, ind);
-			}
-			else throw InconsistentTypesException("Can not convert types");
+			throw InconsistentTypesException("Can not convert types");
 		}
 	}
 
-	rowToEnter.AddColumn((int)autoIncrement, 0);
+	Integer autoCol;
+	autoCol.SetIntValue(autoIncrement);
+
+	rowToEnter.AddColumn(&autoCol, 0);
 	++autoIncrement;
 
 	rows.push_back(rowToEnter);
@@ -162,6 +162,17 @@ void db::Table::UpdateCertainRows(size_t colToSearch, DbType * elementToSearch, 
 			rows[ind][colToChange]->CopyValueFrom(valueToSet);
 		}
 	}
+}
+
+void db::Table::ChangeCell(size_t row, size_t col, DbType * value)
+{
+	//Out of range exception for col?
+	if (value->CheckIfValueIsNull() && headerCols[col].CanBeNull == false)
+	{
+		return; // maybe something smarter
+	}
+
+	rows[row].ChangeColumnValue(col, value); // InconsistentTypesException will be thrown in case of different types along the functions chain
 }
 
 void db::Table::SetNullCell(size_t row, size_t col)
