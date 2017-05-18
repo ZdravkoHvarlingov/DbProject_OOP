@@ -5,6 +5,11 @@ db::Decimal::Decimal()
 	SetNull();
 }
 
+db::Decimal::Decimal(double _decimal)
+{
+	SetDecimalValue(_decimal);
+}
+
 const char* db::Decimal::GetType() const
 {
 	return "Decimal";

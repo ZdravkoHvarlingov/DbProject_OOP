@@ -6,6 +6,11 @@ db::Text::Text()
 	SetNull();
 }
 
+db::Text::Text(const string & _text)
+{
+	SetStringValue(_text);
+}
+
 const char* db::Text::GetType() const
 {
 	return "Text";

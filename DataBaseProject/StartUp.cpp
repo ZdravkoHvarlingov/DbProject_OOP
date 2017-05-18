@@ -1,5 +1,7 @@
 #include <iostream>
 #include "Text.h"
+#include "Integer.h"
+#include "Decimal.h"
 #include "NotImplementedException.h"
 #include "Row.h"
 #include <string>
@@ -11,6 +13,8 @@ using db::NotImplementedException;
 using db::Row;
 using std::string;
 using db::Table;
+using db::Integer;
+using db::Decimal;
 
 int main()
 {
@@ -19,11 +23,23 @@ int main()
 	tbl.AddNewColumn("Age", "Integer");
 	tbl.AddNewColumn("Grade", "Decimal");
 
-	cout << tbl;
-	//cout << tbl.GetDescription() << '\n';
+	Row row;
+	row.AddColumn(&Text("zdravkopich"));
+	row.AddColumn(&Integer(11));
+	row.AddColumn(&Decimal(1.56));
+	Row copy = row;
 
-	//Decimal name;
-	//name.SetDecimalValue(3);
-	//tbl.DeleteCertainRows(1, &name);
-	//cout << tbl;
+	row.ChangeColumnValue(0, &Text("qskaTA"));
+	tbl.MakeNewRow();
+	tbl.MakeNewRow(row);
+	tbl.MakeNewRow(copy);
+	cout << tbl;
+
+	Table second = tbl;
+	second.SetName("second table");
+	tbl.ChangeCell(1, 1, &Text("novoime-idiot"));
+	
+	cout << tbl;
+	cout << second;
+
 }

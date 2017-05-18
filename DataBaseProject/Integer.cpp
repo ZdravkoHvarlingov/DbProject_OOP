@@ -6,6 +6,11 @@ db::Integer::Integer()
 	SetNull();
 }
 
+db::Integer::Integer(int _number)
+{
+	SetIntValue(_number);
+}
+
 const char* db::Integer::GetType() const
 {
 	return "Integer";

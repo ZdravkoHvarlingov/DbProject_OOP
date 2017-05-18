@@ -16,7 +16,7 @@ namespace db
 	class DbTypeFactory
 	{
 	public:
-		static DbType* GetNewType(const char* type);
+		static DbType* GetNewType(const string& type);
 	};
 }
 

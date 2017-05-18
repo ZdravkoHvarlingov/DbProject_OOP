@@ -11,6 +11,7 @@ namespace db
 	{
 	public:
 		Integer();
+		Integer(int _number);
 		const char* GetType() const override;
 		int GetValueAsInt() const override;
 		void SetIntValue(int value);

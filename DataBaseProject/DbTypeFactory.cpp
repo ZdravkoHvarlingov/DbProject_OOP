@@ -2,7 +2,7 @@
 
 using db::DbTypeFactory;
 
-DbType * DbTypeFactory::GetNewType(const char* type)
+DbType * DbTypeFactory::GetNewType(const string& type)
 {
 	DbType* result = nullptr;
 

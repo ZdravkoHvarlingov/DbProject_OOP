@@ -11,6 +11,8 @@ namespace db
 	{
 	public:
 		Text();
+		Text(const string& _text);
+
 		const char* GetType() const override;
 		string GetValueAsString() const override;
 		void SetStringValue(string value);
