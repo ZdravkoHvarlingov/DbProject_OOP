@@ -16,7 +16,9 @@ namespace db
 		void SetIntValue(int value);
 		
 		// Inherited via DbType
+		virtual bool AreEqual(DbType* other) const override;
 		virtual void Serialize(ostream & outStr) const override;
+		virtual void CopyValueFrom(DbType* other) override;
 	
 	private:
 		int number;

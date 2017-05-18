@@ -19,7 +19,11 @@ namespace db
 		void SetName(string _name);
 		void MakeNewRow();
 		void MakeNewRow(const Row& _rowToAdd);
-		void AddNewColumn(string _colName, string _colType);  //, bool _canBeNull);
+		void AddNewColumn(const string& _colName,const string& _colType);  //, bool _canBeNull);
+		void DeleteRow(size_t rowIndex);
+
+		void DeleteCertainRows(size_t colToSearch, DbType* elementToSearch);
+		void UpdateCertainRows(size_t colToSearch, DbType* elementToSearch, size_t colToChange, DbType* valueToSet);
 
 		template<typename T>
 		void ChangeCell(size_t row, size_t col, T value);

@@ -93,7 +93,7 @@ void db::Table::MakeNewRow(const Row& _rowToAdd)
 	rows.push_back(rowToEnter);
 }
 
-void db::Table::AddNewColumn(string _colName, string _colType)  //, bool _canBeNull = true)
+void db::Table::AddNewColumn(const string& _colName, const  string& _colType)  //, bool _canBeNull = true)
 {
 	HeaderCol headerColToAdd = {
 		_colName,
@@ -107,6 +107,43 @@ void db::Table::AddNewColumn(string _colName, string _colType)  //, bool _canBeN
 	for (size_t ind = 0; ind < rowsCount; ind++)
 	{
 		rows[ind].AddNullColumn(_colType);
+	}
+}
+
+void db::Table::DeleteRow(size_t rowIndex)
+{
+	rows.erase(rows.begin() + rowIndex);
+}
+
+void db::Table::DeleteCertainRows(size_t colToSearch, DbType * elementToSearch)
+{
+	size_t rowsCount = rows.size();
+	vector<size_t> indexesToDelete;
+
+	for (size_t ind = 0; ind < rowsCount; ind++)
+	{
+		if (rows[ind][colToSearch]->AreEqual(elementToSearch))
+		{
+			indexesToDelete.push_back(ind);
+		}
+	}
+
+	for (size_t ind = 0; ind < indexesToDelete.size(); ind++)
+	{
+		DeleteRow(indexesToDelete[ind]);
+	}
+}
+
+void db::Table::UpdateCertainRows(size_t colToSearch, DbType * elementToSearch, size_t colToChange, DbType * valueToSet)
+{
+	size_t rowsCount = rows.size();
+
+	for (size_t ind = 0; ind < rowsCount; ind++)
+	{
+		if (rows[ind][colToSearch]->AreEqual(elementToSearch))
+		{
+			rows[ind][colToChange]->CopyValueFrom(valueToSet);
+		}
 	}
 }
 

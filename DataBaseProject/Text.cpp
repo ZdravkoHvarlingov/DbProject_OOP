@@ -1,4 +1,5 @@
 #include "Text.h"
+#include "InconsistentTypesException.h"
 
 db::Text::Text()
 {
@@ -21,6 +22,17 @@ void db::Text::SetStringValue(string value)
 	text = value;
 }
 
+bool db::Text::AreEqual(DbType * other) const
+{
+	if (other->GetType() != "Text")
+	{
+		throw db::InconsistentTypesException("Can not implicit convert to Text");
+	}
+
+	return text == other->GetValueAsString() &&
+		CheckIfValueIsNull() == other->CheckIfValueIsNull();
+}
+
 void db::Text::Serialize(ostream & outStr) const
 {
 	if (CheckIfValueIsNull())
@@ -28,5 +40,20 @@ void db::Text::Serialize(ostream & outStr) const
 		outStr << "NULL ";
 	}
 	else outStr << GetValueAsString() << " ";
+}
+
+void db::Text::CopyValueFrom(DbType * other)
+{
+	if (other->GetType() != "Text")
+	{
+		throw db::InconsistentTypesException("Can not implicit convert to Text");
+	}
+
+	SetStringValue(other->GetValueAsString());
+
+	if (other->CheckIfValueIsNull())
+	{
+		SetNull();
+	}
 }
 

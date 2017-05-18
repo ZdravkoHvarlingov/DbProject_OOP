@@ -1,4 +1,5 @@
 #include "Integer.h"
+#include "InconsistentTypesException.h"
 
 db::Integer::Integer()
 {
@@ -21,6 +22,17 @@ void db::Integer::SetIntValue(int value)
 	number = value;
 }
 
+bool db::Integer::AreEqual(DbType * other) const
+{
+	if (other->GetType() != "Integer")
+	{
+		throw db::InconsistentTypesException("Cannot implicit convert to Integer");
+	}
+
+	else return other->GetValueAsInt() == number &&
+		other->CheckIfValueIsNull() == CheckIfValueIsNull();
+}
+
 void db::Integer::Serialize(ostream & outStr) const
 {
 	if (CheckIfValueIsNull())
@@ -28,5 +40,20 @@ void db::Integer::Serialize(ostream & outStr) const
 		outStr << "NULL ";
 	}
 	else outStr << GetValueAsInt() << " ";
+}
+
+void db::Integer::CopyValueFrom(DbType * other)
+{
+	if (other->GetType() != "Integer")
+	{
+		throw db::InconsistentTypesException("Cannot implicit convert to Integer");
+	}
+
+	SetIntValue(other->GetValueAsInt());
+
+	if (other->CheckIfValueIsNull())
+	{
+		SetNull();
+	}
 }
 

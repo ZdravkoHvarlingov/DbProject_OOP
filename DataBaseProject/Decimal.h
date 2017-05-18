@@ -2,6 +2,7 @@
 #define DB_DECIMAL
 
 #include "DbType.h"
+#include "InconsistentTypesException.h"
 
 using db::DbType;
 
@@ -16,12 +17,12 @@ namespace db
 		void SetDecimalValue(double value) override;
 		
 		// Inherited via DbType
+		virtual bool AreEqual(DbType* other) const override;
 		virtual void Serialize(ostream & outStr) const override;
+		virtual void CopyValueFrom(DbType* other) override;
 	
 	private:
 		double decimal;
-
-
 	};
 }
 

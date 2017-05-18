@@ -33,6 +33,18 @@ int main()
 
 	tbl.MakeNewRow(rowToAdd);
 
+	rowToAdd = Row();
+	rowToAdd.AddColumn("Dancho");
+	rowToAdd.AddColumn(21);
+	rowToAdd.AddColumn(6);
+
+	tbl.MakeNewRow(rowToAdd);
+
 	cout << tbl;
-	cout << tbl.GetDescription() << '\n';
+	//cout << tbl.GetDescription() << '\n';
+
+	Decimal name;
+	name.SetDecimalValue(3);
+	tbl.DeleteCertainRows(1, &name);
+	cout << tbl;
 }

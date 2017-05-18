@@ -15,6 +15,8 @@ namespace db
 		virtual const char* GetType() const = 0;
 		void SetNull();
 		bool CheckIfValueIsNull() const;
+		virtual bool AreEqual(DbType* other) const = 0;
+		virtual void CopyValueFrom(DbType* other) = 0;
 		virtual void Serialize(ostream& outStr) const = 0;
 
 		virtual string GetValueAsString() const;
