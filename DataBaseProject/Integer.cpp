@@ -11,7 +11,7 @@ db::Integer::Integer(int _number)
 	SetIntValue(_number);
 }
 
-const char* db::Integer::GetType() const
+string db::Integer::GetType() const
 {
 	return "Integer";
 }
@@ -27,7 +27,7 @@ void db::Integer::SetIntValue(int value)
 	number = value;
 }
 
-bool db::Integer::AreEqual(DbType * other) const
+bool db::Integer::AreEqual(const DbType * other) const
 {
 	if (other->GetType() != "Integer")
 	{
@@ -43,12 +43,36 @@ void db::Integer::Serialize(ostream & outStr) const
 {
 	if (CheckIfValueIsNull())
 	{
-		outStr << "NULL ";
+		outStr << "NULL";
 	}
-	else outStr << GetValueAsInt() << " ";
+	else outStr << GetValueAsInt();
 }
 
-void db::Integer::CopyValueFrom(DbType * other)
+void db::Integer::DeSerialize(istream & inStr)
+{
+	if (inStr.peek() == 'N')
+	{
+		string nullStr;
+
+		nullStr += inStr.get();
+		nullStr += inStr.get();
+		nullStr += inStr.get();
+		nullStr += inStr.get();
+
+		if (nullStr == "NULL")
+		{
+			number = 0;
+			SetNull();
+
+			return;
+		}
+	}
+
+	inStr >> number;
+	MakeValueNotNull();
+}
+
+void db::Integer::CopyValueFrom(const DbType * other)
 {
 	if (other->GetType() != "Integer")
 	{

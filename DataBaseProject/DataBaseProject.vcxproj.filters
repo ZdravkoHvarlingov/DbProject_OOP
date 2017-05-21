@@ -71,5 +71,8 @@
     <ClInclude Include="DbTypeFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TableUtilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -13,14 +13,15 @@ namespace db
 		Text();
 		Text(const string& _text);
 
-		const char* GetType() const override;
+		string GetType() const override;
 		string GetValueAsString() const override;
-		void SetStringValue(string value);
+		void SetStringValue(const string& value);
 
 		// Inherited via DbType
-		virtual bool AreEqual(DbType* other) const override;
+		virtual bool AreEqual(const DbType* other) const override;
 		virtual void Serialize(ostream & outStr) const override;
-		virtual void CopyValueFrom(DbType* other) override;
+		virtual void DeSerialize(istream& inStr) override;
+		virtual void CopyValueFrom(const DbType* other) override;
 
 	private:
 		string text;

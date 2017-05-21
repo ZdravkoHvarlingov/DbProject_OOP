@@ -10,6 +10,7 @@
 #include <iostream>
 
 using std::ostream;
+using std::istream;
 using db::DbType;
 using std::vector;
 using db::Decimal;
@@ -23,7 +24,7 @@ namespace db
 	{
 	public:
 
-		void AddColumn(DbType* columnToAdd, int position = -1);
+		void AddColumn(const DbType* columnToAdd, int position = -1);
 		void ChangeColumnValue(size_t index, DbType* newValue);
 
 		void AddNullColumn(const string& type);
@@ -33,6 +34,8 @@ namespace db
 		const DbType* const &  operator[] (size_t index) const;
 		size_t GetColmSize() const;
 		friend ostream& operator << (ostream& outStr, const Row& rowToDisplay);
+		void Serialize(ostream& outStr, size_t setWValue = 0) const;
+		void Deserialize(istream& inStr, vector<DbType*> types);
 
 		Row();
 		Row(const Row& other);

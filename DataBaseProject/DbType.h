@@ -3,8 +3,11 @@
 
 #include <string>
 #include <iostream>
+#include <string>
 
+using std::string;
 using std::ostream;
+using std::istream;
 using std::string;
 
 namespace db
@@ -12,18 +15,19 @@ namespace db
 	class DbType
 	{
 	public:
-		virtual const char* GetType() const = 0;
+		virtual string GetType() const = 0;
 		void SetNull();
 		bool CheckIfValueIsNull() const;
-		virtual bool AreEqual(DbType* other) const = 0;
-		virtual void CopyValueFrom(DbType* other) = 0;
+		virtual bool AreEqual(const DbType* other) const = 0;
+		virtual void CopyValueFrom(const DbType* other) = 0;
 		virtual void Serialize(ostream& outStr) const = 0;
+		virtual void DeSerialize(istream& inStr) = 0;
 
 		virtual string GetValueAsString() const;
 		virtual int GetValueAsInt() const;
 		virtual double GetValueAsDecimal() const;
 
-		virtual void SetStringValue(string);
+		virtual void SetStringValue(const string&);
 		virtual void SetIntValue(int);
 		virtual void SetDecimalValue(double);
 

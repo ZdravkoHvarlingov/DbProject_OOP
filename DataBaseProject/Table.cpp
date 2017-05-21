@@ -2,7 +2,10 @@
 #include "NoHeaderRowException.h"
 #include "InconsistentTypesException.h"
 #include <iostream>
+#include <iomanip>
+#include "DbTypeFactory.h"
 
+using db::DbTypeFactory;
 using db::NoHeaderRowException;
 
 db::Table::Table(string _name)
@@ -193,21 +196,111 @@ void db::Table::SetColNullExceptance(bool value, size_t _index)
 
 ostream & db::operator<<(ostream & outStr, const Table & tableToDisplay)
 {
-	outStr << "Table name: " << tableToDisplay.name << '\n';
+	outStr << tableToDisplay.name << '\n';
 	size_t hCount = tableToDisplay.headerCols.size();
+	outStr << hCount << "\n";
 	for (size_t ind = 0; ind < hCount; ind++)
 	{
-		outStr << tableToDisplay.headerCols[ind].headerName <<
-			"<" << tableToDisplay.headerCols[ind].headerType << ">" << " ";
+		Text hdr(tableToDisplay.headerCols[ind].headerName);
+		hdr.Serialize(outStr);
+		outStr << " " << tableToDisplay.headerCols[ind].headerType << " ";
 	}
 
-	outStr << '\n';
+	outStr << '\n' << tableToDisplay.rows.size() << '\n';
 
 	size_t len = tableToDisplay.rows.size();
-	for (size_t ind = 0; ind < len; ind++)
+	for (size_t ind = 0; ind < len - 1; ind++)
 	{
 		outStr << tableToDisplay.rows[ind] << '\n';
 	}
+	outStr << tableToDisplay.rows[len - 1];
 
 	return outStr;
+}
+
+istream & db::operator>>(istream & inStr, Table & tableToInit)
+{
+	tableToInit.headerCols.erase(tableToInit.headerCols.begin());
+	string input;
+	std::getline(inStr, input); //deserialize table name
+	tableToInit.SetName(input);
+
+	int inpNumber;
+	inStr >> inpNumber;
+	inStr.ignore();
+
+	Text columnText;
+
+	vector<DbType*> colTypes;
+	for (size_t ind = 0; ind < inpNumber; ind++) //deserialize columns
+	{
+		columnText.DeSerialize(inStr);
+		inStr >> input;
+		inStr.ignore();
+
+		tableToInit.AddNewColumn(columnText.GetValueAsString(), input);
+		colTypes.push_back(DbTypeFactory::GetNewType(input));
+	}
+
+	inStr >> inpNumber;
+	tableToInit.autoIncrement = inpNumber;
+	inStr.ignore();
+
+	for (size_t ind = 0; ind < inpNumber; ind++)
+	{
+		Row rowToAdd;
+		rowToAdd.Deserialize(inStr, colTypes); //deserialize rows
+		tableToInit.rows.push_back(rowToAdd);
+	}
+
+	for (size_t ind = 0; ind < colTypes.size(); ind++)
+	{
+		delete colTypes[ind];
+	}
+
+	return inStr;
+}
+
+db::Table db::InnerJoin(const Table & firstTable, size_t firstCol, const Table & secondTable, size_t secondCol)
+{
+	db::Table result("InnerJoin:" + firstTable.GetName() + "," + secondTable.GetName());
+
+	size_t firstTableCols = firstTable.headerCols.size();
+	size_t secondTableCols = secondTable.headerCols.size();
+
+	for (size_t ind = 0; ind < firstTableCols; ind++)
+	{
+		result.AddNewColumn("FTable:" + firstTable.headerCols[ind].headerName, firstTable.headerCols[ind].headerType);
+	}
+
+	for (size_t ind = 0; ind < secondTableCols; ind++)
+	{
+		result.AddNewColumn("STable:" + secondTable.headerCols[ind].headerName, secondTable.headerCols[ind].headerType);
+	}
+
+	size_t firstTableRows = firstTable.rows.size();
+	size_t secondTableRows = secondTable.rows.size();
+	for (size_t fInd = 0; fInd < firstTableRows; fInd++)
+	{
+		for (size_t sInd = 0; sInd < secondTableRows; sInd++)
+		{
+			if (firstTable.rows[fInd][firstCol]->AreEqual(secondTable.rows[sInd][secondCol]))
+			{
+				Row rowToAdd;
+				for (size_t fCols = 0; fCols < firstTableCols; fCols++)
+				{
+					rowToAdd.AddColumn(firstTable.rows[fInd][fCols]);
+				}
+
+				for (size_t sCols = 0; sCols < secondTableCols; sCols++)
+				{
+					rowToAdd.AddColumn(secondTable.rows[sInd][sCols]);
+				}
+
+				result.MakeNewRow(rowToAdd);
+			}
+		}
+	}
+
+	return result;
 }

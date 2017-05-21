@@ -10,7 +10,7 @@ db::Decimal::Decimal(double _decimal)
 	SetDecimalValue(_decimal);
 }
 
-const char* db::Decimal::GetType() const
+string db::Decimal::GetType() const
 {
 	return "Decimal";
 }
@@ -26,7 +26,7 @@ void db::Decimal::SetDecimalValue(double value)
 	MakeValueNotNull();
 }
 
-bool db::Decimal::AreEqual(DbType * other) const
+bool db::Decimal::AreEqual(const DbType * other) const
 {
 	if (other->GetType() != "Decimal")
 	{
@@ -42,12 +42,36 @@ void db::Decimal::Serialize(ostream & outStr) const
 {
 	if (CheckIfValueIsNull())
 	{
-		outStr << "NULL ";
+		outStr << "NULL";
 	}
-	else outStr << GetValueAsDecimal() << " ";
+	else outStr << GetValueAsDecimal();
 }
 
-void db::Decimal::CopyValueFrom(DbType * other)
+void db::Decimal::DeSerialize(istream & inStr)
+{
+	if (inStr.peek() == 'N')
+	{
+		string nullStr;
+
+		nullStr += inStr.get();
+		nullStr += inStr.get();
+		nullStr += inStr.get();
+		nullStr += inStr.get();
+
+		if (nullStr == "NULL")
+		{
+			decimal = 0;
+			SetNull();
+
+			return;
+		}
+	}
+
+	inStr >> decimal;
+	MakeValueNotNull();
+}
+
+void db::Decimal::CopyValueFrom(const DbType * other)
 {
 	if (other->GetType() != "Decimal")
 	{

@@ -26,7 +26,7 @@ double db::DbType::GetValueAsDecimal() const
 	throw NotImplementedException("No suitable conversation to decimal!");
 }
 
-void db::DbType::SetStringValue(string value)
+void db::DbType::SetStringValue(const string& value)
 {
 	throw NotImplementedException("No getter for a string value!");
 }

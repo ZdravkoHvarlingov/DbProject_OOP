@@ -12,14 +12,15 @@ namespace db
 	public:
 		Integer();
 		Integer(int _number);
-		const char* GetType() const override;
+		string GetType() const override;
 		int GetValueAsInt() const override;
 		void SetIntValue(int value);
 		
 		// Inherited via DbType
-		virtual bool AreEqual(DbType* other) const override;
+		virtual bool AreEqual(const DbType* other) const override;
 		virtual void Serialize(ostream & outStr) const override;
-		virtual void CopyValueFrom(DbType* other) override;
+		virtual void DeSerialize(istream& inStr) override;
+		virtual void CopyValueFrom(const DbType* other) override;
 	
 	private:
 		int number;

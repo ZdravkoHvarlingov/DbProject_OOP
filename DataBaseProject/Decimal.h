@@ -14,14 +14,15 @@ namespace db
 		Decimal();
 		Decimal(double _decimal);
 
-		const char* GetType() const override;
+		string GetType() const override;
 		double GetValueAsDecimal() const override;
 		void SetDecimalValue(double value) override;
 		
 		// Inherited via DbType
-		virtual bool AreEqual(DbType* other) const override;
+		virtual bool AreEqual(const DbType* other) const override;
 		virtual void Serialize(ostream & outStr) const override;
-		virtual void CopyValueFrom(DbType* other) override;
+		virtual void DeSerialize(istream& inStr) override;
+		virtual void CopyValueFrom(const DbType* other) override;
 	
 	private:
 		double decimal;

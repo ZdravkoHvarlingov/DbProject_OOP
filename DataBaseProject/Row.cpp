@@ -1,9 +1,10 @@
 #include "Row.h"
 #include "DbTypeFactory.h"
+#include <iomanip>
 
 using db::DbTypeFactory;
 
-void db::Row::AddColumn(DbType * columnToAdd, int position)
+void db::Row::AddColumn(const DbType * columnToAdd, int position)
 {
 	DbType* colToAdd = DbTypeFactory::GetNewType(columnToAdd->GetType());
 	colToAdd->CopyValueFrom(columnToAdd);
@@ -50,6 +51,30 @@ const DbType* const & db::Row::operator[](size_t index) const
 size_t db::Row::GetColmSize() const
 {
 	return columns.size();
+}
+
+void db::Row::Serialize(ostream& outStr, size_t setWValue) const
+{
+	size_t colSize = columns.size();
+	for (size_t ind = 0; ind < colSize - 1; ind++)
+	{
+		columns[ind]->Serialize(outStr);
+		outStr << " ";
+	}
+	columns[colSize - 1]->Serialize(outStr);
+}
+
+void db::Row::Deserialize(istream & inStr, vector<DbType*> types)
+{
+	size_t vectSize = types.size();
+
+	for (size_t ind = 0; ind < vectSize; ind++)
+	{
+		types[ind]->DeSerialize(inStr);
+		inStr.ignore();
+
+		AddColumn(types[ind]);
+	}
 }
 
 db::Row::Row(){}
@@ -125,11 +150,8 @@ void db::Row::CopyInfo(const Row & other)
 
 ostream & db::operator<<(ostream & outStr, const Row & rowToDisplay)
 {
-	size_t colSize = rowToDisplay.columns.size();
-	for (size_t ind = 0; ind < colSize; ind++)
-	{
-		rowToDisplay[ind]->Serialize(outStr);
-	}
+	rowToDisplay.Serialize(outStr);
 
 	return outStr;
 }
+
