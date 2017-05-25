@@ -46,7 +46,7 @@ int main()
 	tbl.ChangeCell(1, 1, &Text("novoime-idiot"));
 	tbl.ChangeCell(2, 1, &Text("okay"));
 	tbl.ChangeCell(0, 2, &Integer(12));
-	tbl.ChangeCell(5, 1, &Text("zd\\ra\\\"  vkopich \""));
+	tbl.ChangeCell(5, 1, &Text("zd\\ra\\\"  vkopich \\\\"));
 
 	tbl.UpdateCertainRows(1, &Text(), 1, &Text("NOTNULL"));
 	tbl.ChangeCell(5, 3, &Decimal(-11));
@@ -54,9 +54,6 @@ int main()
 	cout << tbl << "\n\n";
 	Table des("test");
 	std::cin >> des;
-	cout << des << "\n\n";
-
-	des.MakeNewRow();
 	cout << des << "\n\n";
 	//cout << tbl.Aggregate<double>(1, &Text("zdravkopich"), 3, TableUtilities::MinimumOfNumbers<double>, std::numeric_limits<double>::max()) << '\n';
 }

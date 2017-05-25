@@ -24,6 +24,8 @@ namespace db
 		virtual void CopyValueFrom(const DbType* other) override;
 
 	private:
+
+		size_t CountEscapeCharacters(const string& _text, size_t beforeInd);
 		string text;
 	};
 }

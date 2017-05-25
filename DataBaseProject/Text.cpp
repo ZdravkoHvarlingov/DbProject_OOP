@@ -50,7 +50,7 @@ void db::Text::Serialize(ostream & outStr) const
 	}
 	else
 	{
-		outStr << "\" ";
+		outStr << "\"";
 		string value = GetValueAsString();
 		size_t valueLen = value.length();
 
@@ -63,7 +63,7 @@ void db::Text::Serialize(ostream & outStr) const
 			outStr << value[ind];
 		}
 
-		outStr << " \"";
+		outStr << "\"";
 	}
 }
 
@@ -71,34 +71,42 @@ void db::Text::DeSerialize(istream & inStr)
 {
 	string result = "";
 	result += inStr.get();
-	result += inStr.get(); 
-	char charToGet = inStr.get(); //check for NULL value
-	result += charToGet;
-	result += inStr.peek();
-
-	if (result == "NULL")
+	if (result == "N") //check for NULL value
 	{
-		text = "";
-		SetNull();
+		result += inStr.get();
+		result += inStr.get();
+		result += inStr.get();
 
-		return;
+		if (result == "NULL")
+		{
+			text = "";
+			SetNull();
+
+			return;
+		}
+		else throw InconsistentTypesException("Can not convert proper to text!");
+	}
+	else if (result != "\"")
+	{
+		throw InconsistentTypesException("Can not convert proper to text!");
 	}
 
-	result = "a";
-	while (charToGet != '"' || result[result.length() - 1] != ' ')
+	char charToGet = inStr.get(); 
+	while (charToGet != '"' ||
+		(charToGet == '"' && CountEscapeCharacters(result, result.length()) % 2 != 0))
 	{
 		result += charToGet;
 
 		charToGet = inStr.get();
 	}
 
-	result = result.substr(1, result.length() - 2);
+	result = result.substr(1, result.length() - 1);
 
 	size_t resLen = result.length();
 	vector<size_t> indexesToRemove;
 	for (size_t ind = 0; ind < resLen; ind++)
 	{
-		if (result[ind] == '"' || (result[ind] == '\\' && result[ind - 1] == '\\'))
+		if (result[ind] == '"' || (result[ind] == '\\' && CountEscapeCharacters(result, ind) % 2 == 1))
 		{
 			indexesToRemove.push_back(ind - 1);
 		}
@@ -110,11 +118,10 @@ void db::Text::DeSerialize(istream & inStr)
 		for (size_t ind = 0; ind < indxLen - 1; ind++)
 		{
 			result.erase(result.begin() + indexesToRemove[ind]);
-			indexesToRemove[ind + 1] = indexesToRemove[ind + 1] - 1;
+			indexesToRemove[ind + 1] = indexesToRemove[ind + 1] - ind - 1;
 		}
 
-		size_t indToRemove = indexesToRemove[indxLen - 1] - indxLen + 2;
-		result.erase(result.begin() + indToRemove);
+		result.erase(result.begin() + indexesToRemove[indxLen - 1]);
 	}
 
 	SetStringValue(result);
@@ -133,5 +140,22 @@ void db::Text::CopyValueFrom(const DbType * other)
 	{
 		SetNull();
 	}
+}
+
+size_t db::Text::CountEscapeCharacters(const string & _text, size_t beforeInd)
+{
+	size_t result = 0;
+	--beforeInd;
+	char symbol = _text[beforeInd];
+
+	while (symbol == '\\')
+	{
+		++result;
+
+		--beforeInd;
+		symbol = _text[beforeInd];
+	}
+
+	return result;
 }
 
