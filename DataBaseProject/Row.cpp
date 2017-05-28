@@ -1,8 +1,10 @@
 #include "Row.h"
 #include "DbTypeFactory.h"
 #include <iomanip>
+#include <sstream>
 
 using db::DbTypeFactory;
+using std::stringstream;
 
 void db::Row::AddColumn(const DbType * columnToAdd, int position)
 {
@@ -53,7 +55,23 @@ size_t db::Row::GetColmSize() const
 	return columns.size();
 }
 
-void db::Row::Serialize(ostream& outStr, size_t setWValue) const
+size_t db::Row::GetMaxCellValueLength() const
+{
+	size_t cols = columns.size();
+
+	size_t max = 0;
+	for (size_t ind = 0; ind < cols; ind++)
+	{
+		if (max < columns[ind]->GetValueLength())
+		{
+			max = columns[ind]->GetValueLength();
+		}
+	}
+
+	return max;
+}
+
+void db::Row::Serialize(ostream& outStr) const
 {
 	size_t colSize = columns.size();
 	for (size_t ind = 0; ind < colSize - 1; ind++)
@@ -61,7 +79,36 @@ void db::Row::Serialize(ostream& outStr, size_t setWValue) const
 		columns[ind]->Serialize(outStr);
 		outStr << " ";
 	}
-	columns[colSize - 1]->Serialize(outStr);
+	if (colSize != 0)
+	{
+		columns[colSize - 1]->Serialize(outStr);
+	}	
+}
+
+string db::Row::GetAsString(vector<size_t> setWSizes) const
+{
+	stringstream sstream;
+	sstream << std::left << "";
+	size_t colsLength = columns.size();
+
+	for (size_t ind = 0; ind < colsLength; ind++)
+	{
+		if (columns[ind]->GetType() == "Text")
+		{
+			string text = columns[ind]->GetValueAsString();
+			text += '"';
+			text = '"' + text;
+			sstream << std::left << std::setw(setWSizes[ind]) << text << " ";
+		}
+		else
+		{
+			columns[ind]->Serialize(sstream, setWSizes[ind]);
+			sstream << " ";
+		}		
+	}
+	sstream.get();
+
+	return sstream.str();
 }
 
 void db::Row::Deserialize(istream & inStr, vector<DbType*> types)
@@ -147,11 +194,3 @@ void db::Row::CopyInfo(const Row & other)
 		AddColumn(other.columns[ind]);
 	}
 }
-
-ostream & db::operator<<(ostream & outStr, const Row & rowToDisplay)
-{
-	rowToDisplay.Serialize(outStr);
-
-	return outStr;
-}
-

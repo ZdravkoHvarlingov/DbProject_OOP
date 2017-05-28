@@ -1,0 +1,10 @@
+second table
+4
+"Id_auto" Integer "Name" Text "Age" Integer "Grade" Decimal 
+6
+0 NULL NULL NULL
+1 "zdravkopich" 11 1.56
+2 "zdravkopich" 11 1.56
+3 "zdravkopich" 11 1.56
+4 "zdravkopich" 11 1.56
+5 NULL NULL NULL

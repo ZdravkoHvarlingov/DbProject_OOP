@@ -39,13 +39,13 @@ bool db::Integer::AreEqual(const DbType * other) const
 		other->CheckIfValueIsNull() == CheckIfValueIsNull());
 }
 
-void db::Integer::Serialize(ostream & outStr) const
+void db::Integer::Serialize(ostream & outStr, size_t setWSize) const
 {
 	if (CheckIfValueIsNull())
 	{
-		outStr << "NULL";
+		outStr << std::left << std::setw(setWSize) << "NULL";
 	}
-	else outStr << GetValueAsInt();
+	else outStr << std::left << std::setw(setWSize) << GetValueAsInt();
 }
 
 void db::Integer::DeSerialize(istream & inStr)
@@ -85,5 +85,15 @@ void db::Integer::CopyValueFrom(const DbType * other)
 	{
 		SetNull();
 	}
+}
+
+size_t db::Integer::GetValueLength() const
+{
+	if (CheckIfValueIsNull())
+	{
+		return 4;
+	}
+
+	return log10(number) + 1;
 }
 

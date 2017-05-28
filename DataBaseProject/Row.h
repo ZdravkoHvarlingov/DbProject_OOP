@@ -26,15 +26,18 @@ namespace db
 
 		void AddColumn(const DbType* columnToAdd, int position = -1);
 		void ChangeColumnValue(size_t index, DbType* newValue);
-
 		void AddNullColumn(const string& type);
 		void DeleteColumn(size_t _ind);
 
 		DbType*& operator[] (size_t index);
 		const DbType* const &  operator[] (size_t index) const;
+		
 		size_t GetColmSize() const;
-		friend ostream& operator << (ostream& outStr, const Row& rowToDisplay);
-		void Serialize(ostream& outStr, size_t setWValue = 0) const;
+		size_t GetMaxCellValueLength() const;
+
+		void Serialize(ostream& outStr) const;
+		string GetAsString(vector<size_t> setWSizes) const;
+
 		void Deserialize(istream& inStr, vector<DbType*> types);
 
 		Row();

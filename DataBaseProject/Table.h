@@ -16,9 +16,14 @@ namespace db
 	{
 	public:
 
-		Table(string _name);
+		Table(string _name = "default");
 		string GetName() const;
 		string GetDescription() const;
+		vector<string> GetColHeaders() const;
+		const vector<Row>& GetRows() const;
+		size_t GetMaxCellSize() const;
+		vector<size_t> GetColumnsMaxLengts() const;
+
 		void SetName(string _name);
 		void MakeNewRow();
 		void MakeNewRow(const Row& _rowToAdd);
@@ -35,7 +40,6 @@ namespace db
 		void UpdateCertainRows(size_t colToSearch, DbType* elementToSearch, size_t colToChange, DbType* valueToSet);
 
 		void ChangeCell(size_t row, size_t col, DbType* value);
-
 		void SetNullCell(size_t row, size_t col);
 		void SetColNullExceptance(bool value, size_t _index);
 

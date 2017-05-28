@@ -3,6 +3,7 @@
 
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include <string>
 
 using std::string;
@@ -18,9 +19,10 @@ namespace db
 		virtual string GetType() const = 0;
 		void SetNull();
 		bool CheckIfValueIsNull() const;
+		virtual size_t GetValueLength() const = 0;
 		virtual bool AreEqual(const DbType* other) const = 0;
 		virtual void CopyValueFrom(const DbType* other) = 0;
-		virtual void Serialize(ostream& outStr) const = 0;
+		virtual void Serialize(ostream& outStr, size_t setWSize = 0) const = 0;
 		virtual void DeSerialize(istream& inStr) = 0;
 
 		virtual string GetValueAsString() const;

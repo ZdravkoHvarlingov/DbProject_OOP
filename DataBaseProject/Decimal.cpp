@@ -1,11 +1,13 @@
 #include "Decimal.h"
 
 db::Decimal::Decimal()
+	: MaxFloatingPoints(3)
 {
 	SetNull();
 }
 
 db::Decimal::Decimal(double _decimal)
+	: MaxFloatingPoints(3)
 {
 	SetDecimalValue(_decimal);
 }
@@ -38,13 +40,13 @@ bool db::Decimal::AreEqual(const DbType * other) const
 		other->CheckIfValueIsNull() == CheckIfValueIsNull());
 }
 
-void db::Decimal::Serialize(ostream & outStr) const
+void db::Decimal::Serialize(ostream & outStr, size_t setWSize) const
 {
 	if (CheckIfValueIsNull())
 	{
-		outStr << "NULL";
+		outStr << std::left << std::setw(setWSize) << "NULL";
 	}
-	else outStr << GetValueAsDecimal();
+	else outStr << std::left << std::setw(setWSize) << std::setprecision(MaxFloatingPoints) << std::fixed << GetValueAsDecimal();
 }
 
 void db::Decimal::DeSerialize(istream & inStr)
@@ -84,4 +86,16 @@ void db::Decimal::CopyValueFrom(const DbType * other)
 	{
 		SetNull();
 	}
+}
+
+size_t db::Decimal::GetValueLength() const
+{
+	if (CheckIfValueIsNull())
+	{
+		return 4;
+	}
+
+	unsigned int modValue = fabs(decimal);
+
+	return (size_t)log10(modValue) + 1 + MaxFloatingPoints;
 }

@@ -1,0 +1,10 @@
+Test table
+4
+"Id_auto" Integer "Name" Text "Age" Integer "Grade" Decimal 
+6
+0 "NOTNULL" 12 NULL
+1 "novoime-idiot" 11 1.56
+2 "okay" 11 1.56
+3 "zdravkopich" 11 1.56
+4 "zdravkopich" 11 1.56
+5 "zd\\ra\\\"  vkopich \\\\" NULL -11

@@ -8,7 +8,11 @@
 #include <string>
 #include "Table.h"
 #include "TableUtilities.h"
+#include "ConsoleCommandHandler.h"
 #include <limits>
+#include <fstream>
+#include <windows.h>
+#include <iomanip>
 
 using std::cout;
 using db::Text;
@@ -19,41 +23,26 @@ using db::Table;
 using db::Integer;
 using db::Decimal;
 using db::TableUtilities;
+using std::ofstream;
+using std::setw;
 
 int main()
 {
-	Table tbl("Test table");
-	tbl.AddNewColumn("Name", "Text");
-	tbl.AddNewColumn("Age", "Integer");
-	tbl.AddNewColumn("Grade", "Decimal");
 
-	Row row;
-	row.AddColumn(&Text("zdravkopich"));
-	row.AddColumn(&Integer(11));
-	row.AddColumn(&Decimal(1.56));
-	
-	Row copy = row;
+	//CONSOLE_SCREEN_BUFFER_INFO csbi;
+	//int columns, rows;
 
-	tbl.MakeNewRow();
-	tbl.MakeNewRow(row);
-	tbl.MakeNewRow(copy);
-	tbl.MakeNewRow(row);
-	tbl.MakeNewRow(copy);
-	tbl.MakeNewRow();
+	//GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+	//columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+	//rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 
-	Table second = tbl;
-	second.SetName("second table");
-	tbl.ChangeCell(1, 1, &Text("novoime-idiot"));
-	tbl.ChangeCell(2, 1, &Text("okay"));
-	tbl.ChangeCell(0, 2, &Integer(12));
-	tbl.ChangeCell(5, 1, &Text("zd\\ra\\\"  vkopich \\\\"));
+	//string msg = "asda";
+	//cout << std::left << setw(0) << msg << setw(0) << msg << '\n';
+	//cout << setw(0) << msg << '\n';
+	//cout << std::setprecision(3) << std::fixed << 121312543 << '\n';
 
-	tbl.UpdateCertainRows(1, &Text(), 1, &Text("NOTNULL"));
-	tbl.ChangeCell(5, 3, &Decimal(-11));
-
-	cout << tbl << "\n\n";
-	Table des("test");
-	std::cin >> des;
-	cout << des << "\n\n";
 	//cout << tbl.Aggregate<double>(1, &Text("zdravkopich"), 3, TableUtilities::MinimumOfNumbers<double>, std::numeric_limits<double>::max()) << '\n';
+
+	ConsoleCommandHandler commandHandler;
+	commandHandler.StartListening();
 }

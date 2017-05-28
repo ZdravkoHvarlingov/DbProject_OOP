@@ -42,11 +42,11 @@ bool db::Text::AreEqual(const DbType * other) const
 		CheckIfValueIsNull() == other->CheckIfValueIsNull());
 }
 
-void db::Text::Serialize(ostream & outStr) const
+void db::Text::Serialize(ostream & outStr, size_t setWSize) const
 {
 	if (CheckIfValueIsNull())
 	{
-		outStr << "NULL";
+		outStr << std::left << std::setw(setWSize) << "NULL";
 	}
 	else
 	{
@@ -54,16 +54,27 @@ void db::Text::Serialize(ostream & outStr) const
 		string value = GetValueAsString();
 		size_t valueLen = value.length();
 
+		size_t additionalSymbols = 0;
 		for (size_t ind = 0; ind < valueLen; ind++)
 		{
 			if (value[ind] == '"' || value[ind] == '\\')
 			{
 				outStr << '\\';
+				additionalSymbols++;
 			}
 			outStr << value[ind];
 		}
 
 		outStr << "\"";
+
+		int diff = setWSize - value.size() + additionalSymbols + 2;
+		if (diff > 0)
+		{
+			for (size_t ind = 0; ind < diff; ind++)
+			{
+				outStr << " ";
+			}
+		}
 	}
 }
 
@@ -140,6 +151,16 @@ void db::Text::CopyValueFrom(const DbType * other)
 	{
 		SetNull();
 	}
+}
+
+size_t db::Text::GetValueLength() const
+{
+	if (CheckIfValueIsNull())
+	{
+		return 4;
+	}
+
+	return text.length() + 2; //because of the quotes
 }
 
 size_t db::Text::CountEscapeCharacters(const string & _text, size_t beforeInd)

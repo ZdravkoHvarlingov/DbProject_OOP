@@ -32,12 +32,68 @@ string db::Table::GetDescription() const
 
 	for (size_t ind = 0; ind < len; ind++)
 	{
-		result += headerCols[ind].headerName + " <" + headerCols[ind].headerType + ">";
+		result += headerCols[ind].headerName + " \"" + headerCols[ind].headerType + "\"";
 		
 		if (ind != len - 1)
 		{
 			result += ", ";
 		}
+	}
+
+	return result;
+}
+
+vector<string> db::Table::GetColHeaders() const
+{
+	vector<string> result;
+	size_t colsLength = headerCols.size();
+
+	for (size_t ind = 0; ind < colsLength; ind++)
+	{
+		result.push_back(headerCols[ind].headerName);
+	}
+
+	return result;
+}
+
+const vector<Row>& db::Table::GetRows() const
+{
+	return rows;
+}
+
+size_t db::Table::GetMaxCellSize() const
+{
+	size_t rowsAmount = rows.size();
+
+	size_t max = 0;
+	for (size_t ind = 0; ind < rowsAmount; ind++)
+	{
+		if (max < rows[ind].GetMaxCellValueLength())
+		{
+			max = rows[ind].GetMaxCellValueLength();
+		}
+	}
+
+	return max;
+}
+
+vector<size_t> db::Table::GetColumnsMaxLengts() const
+{
+	vector<size_t> result;
+	size_t colsAmount = headerCols.size();
+	size_t rowsAmount = rows.size();
+
+	for (size_t col = 0; col< colsAmount; col++)
+	{
+		size_t maxSize = 0;
+		for (size_t row = 0; row < rowsAmount; row++)
+		{
+			if (rows[row][col]->GetValueLength() > maxSize)
+			{
+				maxSize = rows[row][col]->GetValueLength();
+			}
+		}
+		result.push_back(maxSize);
 	}
 
 	return result;
@@ -211,9 +267,13 @@ ostream & db::operator<<(ostream & outStr, const Table & tableToDisplay)
 	size_t len = tableToDisplay.rows.size();
 	for (size_t ind = 0; ind < len - 1; ind++)
 	{
-		outStr << tableToDisplay.rows[ind] << '\n';
+		tableToDisplay.rows[ind].Serialize(outStr);
+		outStr << '\n';
 	}
-	outStr << tableToDisplay.rows[len - 1];
+	if (len != 0)
+	{
+		tableToDisplay.rows[len - 1].Serialize(outStr);
+	}
 
 	return outStr;
 }
@@ -243,7 +303,6 @@ istream & db::operator>>(istream & inStr, Table & tableToInit)
 	}
 
 	inStr >> inpNumber;
-	tableToInit.autoIncrement = inpNumber;
 	inStr.ignore();
 
 	for (size_t ind = 0; ind < inpNumber; ind++)
@@ -258,6 +317,7 @@ istream & db::operator>>(istream & inStr, Table & tableToInit)
 		delete colTypes[ind];
 	}
 
+	tableToInit.autoIncrement = tableToInit.rows[inpNumber - 1][0]->GetValueAsInt() + 1;
 	return inStr;
 }
 
