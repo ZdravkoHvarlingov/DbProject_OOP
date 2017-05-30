@@ -11,7 +11,6 @@
 #include "ConsoleCommandHandler.h"
 #include <limits>
 #include <fstream>
-#include <windows.h>
 #include <iomanip>
 
 using std::cout;

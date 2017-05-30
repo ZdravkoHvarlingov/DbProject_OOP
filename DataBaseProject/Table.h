@@ -20,9 +20,10 @@ namespace db
 		string GetName() const;
 		string GetDescription() const;
 		vector<string> GetColHeaders() const;
+		size_t GetAmountOfColumns() const;
 		const vector<Row>& GetRows() const;
 		size_t GetMaxCellSize() const;
-		vector<size_t> GetColumnsMaxLengts() const;
+		vector<size_t> GetColumnsMaxLengths() const;
 
 		void SetName(string _name);
 		void MakeNewRow();

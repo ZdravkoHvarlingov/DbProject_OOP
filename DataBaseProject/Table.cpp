@@ -56,6 +56,11 @@ vector<string> db::Table::GetColHeaders() const
 	return result;
 }
 
+size_t db::Table::GetAmountOfColumns() const
+{
+	return headerCols.size();
+}
+
 const vector<Row>& db::Table::GetRows() const
 {
 	return rows;
@@ -77,7 +82,7 @@ size_t db::Table::GetMaxCellSize() const
 	return max;
 }
 
-vector<size_t> db::Table::GetColumnsMaxLengts() const
+vector<size_t> db::Table::GetColumnsMaxLengths() const
 {
 	vector<size_t> result;
 	size_t colsAmount = headerCols.size();
@@ -85,7 +90,7 @@ vector<size_t> db::Table::GetColumnsMaxLengts() const
 
 	for (size_t col = 0; col< colsAmount; col++)
 	{
-		size_t maxSize = 0;
+		size_t maxSize = headerCols[col].headerName.length();
 		for (size_t row = 0; row < rowsAmount; row++)
 		{
 			if (rows[row][col]->GetValueLength() > maxSize)

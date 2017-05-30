@@ -95,9 +95,18 @@ string db::Row::GetAsString(vector<size_t> setWSizes) const
 	{
 		if (columns[ind]->GetType() == "Text")
 		{
-			string text = columns[ind]->GetValueAsString();
-			text += '"';
-			text = '"' + text;
+			string text;
+			if (columns[ind]->CheckIfValueIsNull())
+			{
+				text = "NULL";
+			}
+			else
+			{
+				text = columns[ind]->GetValueAsString();
+				text += '"';
+				text = '"' + text;
+			}
+
 			sstream << std::left << std::setw(setWSizes[ind]) << text << " ";
 		}
 		else

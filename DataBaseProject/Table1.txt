@@ -1,10 +1,52 @@
 Test table
 4
 "Id_auto" Integer "Name" Text "Age" Integer "Grade" Decimal 
-6
+48
 0 "NOTNULL" 12 NULL
 1 "novoime-idiot" 11 1.56
 2 "okay" 11 1.56
-3 "zdravkopich" 11 1.56
+3 "zdravksdfdsfopich" 11 1.56
 4 "zdravkopich" 11 1.56
-5 "zd\\ra\\\"  vkopich \\\\" NULL -11
+5 "zd\\rsdfsda\\\"  vkopich \\\\" NULL -11
+6 "NOTNULL" 12 NULL
+7 "novoime-idiot" 11 1.56
+8 "okay" 11 1.56
+9 "zdravkopich" 11 1.56
+10 "zdravkopich" 11 1.56
+11 "zd\\ra\\\"  vkopich \\\\" NULL -11
+12 "NOTNULL" 12 NULL
+13 "novoime-idiot" 11 1.56
+14 "okay" 11 1.56
+15 "zdravksdfsdopich" 11 1.56
+16 "zdravkopich" 11 1.56
+17 "zd\\ra\\\"  vkopich \\\\" NULL -11
+18 "NOTNULL" 12 NULL
+19 "novoime-idiot" 11 1.56
+20 "okay" 11 1.56
+21 "zdravkosdfdspich" 11 1.56
+22 "zdravkopich" 11 1.56
+23 "zd\\ra\\\"  vkopich \\\\" NULL -11
+24 "NOTNULL" 12 NULL
+25 "novoime-idiot" 11 1.56
+26 "okay" 11 1.56
+27 "zdravksdfsdopich" 11 1.56
+28 "zdravkopich" 11 1.56
+29 "zd\\ra\\\"  vkopich \\\\" NULL -11
+30 "NOTNULL" 12 NULL
+31 "novoime-idiot" 11 1.56
+32 "okay" 11 1.56
+33 "zdravkopich" 11 1.56
+34 "zdravkopich" 11 1.56
+35 "zd\\sdfdsfra\\\"  vkopich \\\\" NULL -11
+36 "NOTNsdfsdULL" 12 NULL
+37 "novoime-idiot" 11 1.56
+38 "oksdfsdfay" 11 1.56
+39 "zdrasdfsdfvkopich" 11 1.56
+40 "zdravkopich" 11 1.56
+41 "zd\\ra\\\"  vkopich \\\\" NULL -11
+42 "NOTNULL" 12 NULL
+43 "novoime-idiot" 11 1.56
+44 "okay" 11 1.56
+45 "zdrasdfsdfvkopich" 11 1.56
+46 "zdravkopich" 11 1.56
+47 "zd\\ra\\\"  vkopich \\\\" NULL -11
