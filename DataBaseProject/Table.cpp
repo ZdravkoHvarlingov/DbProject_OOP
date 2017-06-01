@@ -32,7 +32,7 @@ string db::Table::GetDescription() const
 
 	for (size_t ind = 0; ind < len; ind++)
 	{
-		result += headerCols[ind].headerName + " \"" + headerCols[ind].headerType + "\"";
+		result += "\"" + headerCols[ind].headerName + "\" - " + headerCols[ind].headerType;
 		
 		if (ind != len - 1)
 		{
@@ -54,6 +54,15 @@ vector<string> db::Table::GetColHeaders() const
 	}
 
 	return result;
+}
+
+const string & db::Table::GetColType(size_t col) const
+{
+	if (col > headerCols.size() - 1)
+	{
+		return "";
+	}
+	return headerCols[col].headerType;
 }
 
 size_t db::Table::GetAmountOfColumns() const
@@ -226,6 +235,22 @@ void db::Table::UpdateCertainRows(size_t colToSearch, DbType * elementToSearch, 
 			rows[ind][colToChange]->CopyValueFrom(valueToSet);
 		}
 	}
+}
+
+vector<Row> db::Table::SelectCertainRows(size_t colToSearch, DbType * elementToSearch) const
+{
+	size_t rowsAmount = rows.size();
+	vector<Row> result;
+
+	for (size_t ind = 0; ind < rowsAmount; ind++)
+	{
+		if (rows[ind][colToSearch]->AreEqual(elementToSearch))
+		{
+			result.push_back(rows[ind]);
+		}
+	}
+
+	return result;
 }
 
 void db::Table::ChangeCell(size_t row, size_t col, DbType * value)

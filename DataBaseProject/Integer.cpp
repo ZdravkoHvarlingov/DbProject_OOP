@@ -69,6 +69,10 @@ void db::Integer::DeSerialize(istream & inStr)
 	}
 
 	inStr >> number;
+	if (inStr.fail())
+	{
+		throw InconsistentTypesException("Can not convert proper to Integer!");
+	}
 	MakeValueNotNull();
 }
 

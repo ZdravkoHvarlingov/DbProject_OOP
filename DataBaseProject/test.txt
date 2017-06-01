@@ -49,4 +49,4 @@ Test table
 44 "okay" 11 1.560
 45 "zdrasdfsdfvkopich" 11 1.560
 46 "zdravkopich" 11 1.560
-47 "zd\\ra\\\"  vkopich \\\\" NULL -11.000
+47 "zd\\ra\\\"  vkopich \\\\" NULL -11.000Test table

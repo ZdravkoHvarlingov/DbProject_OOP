@@ -70,6 +70,10 @@ void db::Decimal::DeSerialize(istream & inStr)
 	}
 
 	inStr >> decimal;
+	if (inStr.fail())
+	{
+		throw InconsistentTypesException("Can not convert proper to Decimal!");
+	}
 	MakeValueNotNull();
 }
 
