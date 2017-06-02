@@ -60,36 +60,7 @@ void ConsoleCommandHandler::StartListening()
 		}
 		else if(input == "Delete")
 		{
-			cin.ignore();
-
-			try
-			{
-				Text tableName;
-				tableName.DeSerialize(cin);
-				cin.ignore();
-
-				int tableIndex = GetTableIndex(tableName.GetValueAsString());
-				if (tableIndex != -1)
-				{
-					Integer searchCol;
-					searchCol.DeSerialize(cin);
-					cin.ignore();
-
-					DbType* valueToSearch = db::DbTypeFactory::GetNewType(
-						loadedTables[tableIndex].GetColType(searchCol.GetValueAsInt()));
-					valueToSearch->DeSerialize(cin);
-
-					loadedTables[tableIndex].DeleteCertainRows(searchCol.GetValueAsInt(), valueToSearch);
-
-					delete valueToSearch;
-					cout << "db > Rows were deleted successfully!\n";
-				}
-				else cout << "db > There is no such table!\n";
-			}
-			catch (const std::exception& e)
-			{
-				cout << "db > Invalid arguments! " << e.what() << '\n';
-			}
+			DeleteFunc();
 		}
 		else if (input == "Help")
 		{
@@ -112,6 +83,40 @@ void ConsoleCommandHandler::StartListening()
 	}
 
 	cout << "db > Program exit...\n";
+}
+
+void ConsoleCommandHandler::DeleteFunc()
+{
+	cin.ignore();
+
+	try
+	{
+		Text tableName;
+		tableName.DeSerialize(cin);
+		cin.ignore();
+
+		int tableIndex = GetTableIndex(tableName.GetValueAsString());
+		if (tableIndex != -1)
+		{
+			Integer searchCol;
+			searchCol.DeSerialize(cin);
+			cin.ignore();
+
+			DbType* valueToSearch = db::DbTypeFactory::GetNewType(
+				loadedTables[tableIndex].GetColType(searchCol.GetValueAsInt()));
+			valueToSearch->DeSerialize(cin);
+
+			loadedTables[tableIndex].DeleteCertainRows(searchCol.GetValueAsInt(), valueToSearch);
+
+			delete valueToSearch;
+			cout << "db > Rows were deleted successfully!\n";
+		}
+		else cout << "db > There is no such table!\n";
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid arguments! " << e.what() << '\n';
+	}
 }
 
 void ConsoleCommandHandler::UpdateFunc()

@@ -12,10 +12,6 @@ class ConsoleCommandHandler
 public:
 
 	void StartListening();
-
-	void UpdateFunc();
-
-	void AddColumnFunc();
 	
 	void PrintHelp() const;
 	void PrintTableDescription(const string& tableName) const;
@@ -31,6 +27,9 @@ public:
 
 private:
 
+	void DeleteFunc();
+	void UpdateFunc();
+	void AddColumnFunc();
 	void SaveFunc();
 	void DescribeFunc();
 	void LoadFunc(std::string &input);
