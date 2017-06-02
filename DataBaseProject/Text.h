@@ -14,7 +14,7 @@ namespace db
 		Text(const string& _text);
 
 		string GetType() const override;
-		string GetValueAsString() const override;
+		const string& GetValueAsString() const override;
 		void SetStringValue(const string& value);
 
 		// Inherited via DbType

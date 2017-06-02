@@ -1,5 +1,7 @@
 #include "DbTypeFactory.h"
+#include "InconsistentTypesException.h"
 
+using db::InconsistentTypesException;
 using db::DbTypeFactory;
 
 DbType * DbTypeFactory::GetNewType(const string& type)
@@ -17,6 +19,10 @@ DbType * DbTypeFactory::GetNewType(const string& type)
 	else if (type == "Text")
 	{
 		result = new Text;
+	}
+	else
+	{
+		throw InconsistentTypesException("There is no such type!");
 	}
 
 	return result;

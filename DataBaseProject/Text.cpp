@@ -19,7 +19,7 @@ string db::Text::GetType() const
 	return "Text";
 }
 
-string db::Text::GetValueAsString() const
+const string& db::Text::GetValueAsString() const
 {
 	return text;
 }

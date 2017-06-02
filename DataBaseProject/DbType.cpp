@@ -11,7 +11,7 @@ bool db::DbType::CheckIfValueIsNull() const
 	return isNull;
 }
 
-string db::DbType::GetValueAsString() const
+const string& db::DbType::GetValueAsString() const
 {
 	throw NotImplementedException("No suitable conversation to string!");
 }

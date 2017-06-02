@@ -98,6 +98,12 @@ size_t db::Integer::GetValueLength() const
 		return 4;
 	}
 
-	return log10(number) + 1;
+	size_t result = log10(abs(number)) + 1;
+	if (number < 0)
+	{
+		++result;
+	}
+
+	return result;
 }
 

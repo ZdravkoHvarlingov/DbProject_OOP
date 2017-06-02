@@ -12,6 +12,10 @@ class ConsoleCommandHandler
 public:
 
 	void StartListening();
+
+	void UpdateFunc();
+
+	void AddColumnFunc();
 	
 	void PrintHelp() const;
 	void PrintTableDescription(const string& tableName) const;
@@ -21,6 +25,7 @@ public:
 	size_t GetAmountOfRowsToPrint(size_t tableIndex) const;
 	void LoadTableFromFile(const char* fileName);
 	void SaveTableToFile(const char* fileName, const string& tableName);
+	void AddColumn(const string& tableName, const string& colName, const string& type);
 	void PrintTables() const;
 	int GetTableIndex(const string& tableName) const;
 

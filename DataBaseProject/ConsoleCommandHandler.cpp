@@ -50,6 +50,47 @@ void ConsoleCommandHandler::StartListening()
 		{
 			SelectFunc();
 		}
+		else if (input == "AddColumn")
+		{
+			AddColumnFunc();
+		}
+		else if (input == "Update")
+		{
+			UpdateFunc();
+		}
+		else if(input == "Delete")
+		{
+			cin.ignore();
+
+			try
+			{
+				Text tableName;
+				tableName.DeSerialize(cin);
+				cin.ignore();
+
+				int tableIndex = GetTableIndex(tableName.GetValueAsString());
+				if (tableIndex != -1)
+				{
+					Integer searchCol;
+					searchCol.DeSerialize(cin);
+					cin.ignore();
+
+					DbType* valueToSearch = db::DbTypeFactory::GetNewType(
+						loadedTables[tableIndex].GetColType(searchCol.GetValueAsInt()));
+					valueToSearch->DeSerialize(cin);
+
+					loadedTables[tableIndex].DeleteCertainRows(searchCol.GetValueAsInt(), valueToSearch);
+
+					delete valueToSearch;
+					cout << "db > Rows were deleted successfully!\n";
+				}
+				else cout << "db > There is no such table!\n";
+			}
+			catch (const std::exception& e)
+			{
+				cout << "db > Invalid arguments! " << e.what() << '\n';
+			}
+		}
 		else if (input == "Help")
 		{
 			PrintHelp();
@@ -63,6 +104,7 @@ void ConsoleCommandHandler::StartListening()
 			cout << "db > Invalid command! You have entered something additional or something wrong.\n";
 		}
 
+		cin.clear();
 		cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //clears everything to the end of line
 
 		cout << "db > ";
@@ -70,6 +112,78 @@ void ConsoleCommandHandler::StartListening()
 	}
 
 	cout << "db > Program exit...\n";
+}
+
+void ConsoleCommandHandler::UpdateFunc()
+{
+	cin.ignore();
+
+	try
+	{
+		Text tableName;
+		tableName.DeSerialize(cin);
+		cin.ignore();
+
+		int tableIndex = GetTableIndex(tableName.GetValueAsString());
+		if (tableIndex != -1)
+		{
+			Integer colToSearch;
+			colToSearch.DeSerialize(cin);
+			cin.ignore();
+
+			string searchColType = loadedTables[tableIndex].GetColType(colToSearch.GetValueAsInt());
+			DbType* valueToSearch = db::DbTypeFactory::GetNewType(searchColType);
+			valueToSearch->DeSerialize(cin);
+			cin.ignore();
+
+			Integer colToChange;
+			colToChange.DeSerialize(cin);
+			cin.ignore();
+
+			string typeToChange = loadedTables[tableIndex].GetColType(colToChange.GetValueAsInt());
+			DbType* valueToChangeWith = db::DbTypeFactory::GetNewType(typeToChange);
+
+			valueToChangeWith->DeSerialize(cin);
+			//no need of cin.ignore();
+
+			loadedTables[tableIndex].UpdateCertainRows(colToSearch.GetValueAsInt(), valueToSearch,
+				colToChange.GetValueAsInt(), valueToChangeWith);
+
+			delete valueToSearch;
+			delete valueToChangeWith;
+			cout << "db > Table successfully updated!\n";
+		}
+		else cout << "db > There is no such table!\n";
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid arguments! " << e.what() << '\n';
+	}
+}
+
+void ConsoleCommandHandler::AddColumnFunc()
+{
+	cin.get(); // remove whitespace that >> operator ignores after AddColumn
+
+	try
+	{
+		Text tableName;
+		tableName.DeSerialize(cin);
+		cin.ignore();
+
+		Text colName;
+		colName.DeSerialize(cin);
+		cin.ignore();
+
+		string colType;
+		cin >> colType;
+
+		AddColumn(tableName.GetValueAsString(), colName.GetValueAsString(), colType);
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid arguments! " << e.what() << '\n';
+	}
 }
 
 void ConsoleCommandHandler::DescribeFunc()
@@ -117,7 +231,7 @@ void ConsoleCommandHandler::PrintPreviewFunc(std::string &input)
 
 		if (tableIndex == -1)
 		{
-			cout << "db > There is no such table\n!";
+			cout << "db > There is no such table!\n";
 		}
 		else
 		{
@@ -208,13 +322,17 @@ void ConsoleCommandHandler::PrintHelp() const
 		"*** Database types are: Text, Integer, Decimal. Type them without quotes!\n" <<
 		"*** Cells can be null - null is typed NULL in the terminal without quotes.\n"
 		"*** Characters \" and \\ should be escaped in the table names and text(string) cells with backslash \\ !\n\n" <<
-		"Commands:\n" <<
-		"1) Load \"file_name\" - loads a single table from a file\n" <<
-		"2) Showtables - prints all the table names currently loaded\n" <<
-		"3) Describe \"table_name\" - prints the description of a table in case it is loaded.\n" <<
+		"Commands:\n" 
+		"1) Load \"file_name\" - loads a single table from a file\n" 
+		"2) Showtables - prints all the table names currently loaded\n" 
+		"3) Describe \"table_name\" - prints the description of a table in case it is loaded.\n" 
 		"4) Print \"table_name\" - prints the table content in a preview mode.\n" 
-		"5) Save \"table_name\" \"file_name\" - saves the table content in a file\n"
-		"6) Select column_number \"table_name\" value_to_search - prints rows with the selected value at column column_number\n\n";
+		"5) Save \"table_name\" \"file_name\" - saves the table content in a file.\n"
+		"6) Select column_number \"table_name\" value_to_search - prints rows with the selected value at column column_number.\n"
+		"7) AddColumn \"table_name\" \"column_name\" column_type - Adds a new column to the selected table.\n"
+		"8) Update \"table_name\" colToSearch_number <valueToSearch> colToChange_number <updateValue> - updates certain rows of the table.\n"
+		"9) Delete \"table_name\" colToSearch_number <valueToSearch> - deletes certain rows of the table.\n"
+		"10) Exit - program exit.\n\n";
 }
 
 void ConsoleCommandHandler::PrintTableDescription(const string & tableName) const
@@ -393,6 +511,26 @@ void ConsoleCommandHandler::SaveTableToFile(const char * fileName, const string 
 	}
 
 	outFile.close();
+}
+
+void ConsoleCommandHandler::AddColumn(const string & tableName, const string & colName, const string & type)
+{
+	int tableIndex = GetTableIndex(tableName);
+
+	if (tableIndex == -1)
+	{
+		cout << "db > There is no such table!\n";
+		return;
+	}
+
+	if (type != "Integer" && type != "Decimal" && type != "Text")
+	{
+		cout << "db > Invalid column type! Use Help command for more information.\n";
+		return;
+	}
+
+	loadedTables[tableIndex].AddNewColumn(colName, type);
+	cout << "db > Column successfully added!\n";
 }
 
 void ConsoleCommandHandler::PrintTables() const

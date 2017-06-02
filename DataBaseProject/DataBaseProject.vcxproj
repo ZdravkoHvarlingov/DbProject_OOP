@@ -158,6 +158,7 @@
     <ClInclude Include="Integer.h" />
     <ClInclude Include="NoHeaderRowException.h" />
     <ClInclude Include="NotImplementedException.h" />
+    <ClInclude Include="OutOfRangeException.h" />
     <ClInclude Include="Row.h" />
     <ClInclude Include="Table.h" />
     <ClInclude Include="TableUtilities.h" />

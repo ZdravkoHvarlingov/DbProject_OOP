@@ -80,5 +80,8 @@
     <ClInclude Include="ConsoleCommandHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OutOfRangeException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

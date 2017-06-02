@@ -30,7 +30,6 @@ namespace db
 		void MakeNewRow();
 		void MakeNewRow(const Row& _rowToAdd);
 		void AddNewColumn(const string& _colName,const string& _colType);  //, bool _canBeNull);
-		void DeleteRow(size_t rowIndex);
 
 		friend Table InnerJoin(const Table& firstTable, size_t firstCol, const Table& secondTable, size_t secondCol);
 
@@ -42,7 +41,6 @@ namespace db
 		void UpdateCertainRows(size_t colToSearch, DbType* elementToSearch, size_t colToChange, DbType* valueToSet);
 		vector<Row> SelectCertainRows(size_t colToSearch, DbType* elementToSearch) const;
 
-		void ChangeCell(size_t row, size_t col, DbType* value);
 		void SetNullCell(size_t row, size_t col);
 		void SetColNullExceptance(bool value, size_t _index);
 
@@ -50,6 +48,9 @@ namespace db
 		friend istream& operator >> (istream& inStr, Table& tableToInit);
 
 	private:
+
+		void DeleteRow(size_t rowIndex);
+		void ChangeCell(size_t row, size_t col, DbType* value);
 
 		struct HeaderCol
 		{

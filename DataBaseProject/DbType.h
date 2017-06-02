@@ -25,7 +25,7 @@ namespace db
 		virtual void Serialize(ostream& outStr, size_t setWSize = 0) const = 0;
 		virtual void DeSerialize(istream& inStr) = 0;
 
-		virtual string GetValueAsString() const;
+		virtual const string& GetValueAsString() const;
 		virtual int GetValueAsInt() const;
 		virtual double GetValueAsDecimal() const;
 

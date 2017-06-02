@@ -1,12 +1,14 @@
 #include "Table.h"
 #include "NoHeaderRowException.h"
 #include "InconsistentTypesException.h"
+#include "OutOfRangeException.h"
 #include <iostream>
 #include <iomanip>
 #include "DbTypeFactory.h"
 
 using db::DbTypeFactory;
 using db::NoHeaderRowException;
+using db::OutOfRangeException;
 
 db::Table::Table(string _name)
 	: autoIncrement(0)
@@ -58,9 +60,9 @@ vector<string> db::Table::GetColHeaders() const
 
 const string & db::Table::GetColType(size_t col) const
 {
-	if (col > headerCols.size() - 1)
+	if (col >= headerCols.size() || col < 0)
 	{
-		return "";
+		throw OutOfRangeException("Search column is out of range!");
 	}
 	return headerCols[col].headerType;
 }
@@ -190,6 +192,11 @@ void db::Table::DeleteRow(size_t rowIndex)
 
 size_t db::Table::CountCertainRows(size_t colToSearch, DbType * elementToSearch) const
 {
+	if (colToSearch < 0 || colToSearch >= headerCols.size())
+	{
+		throw OutOfRangeException("Search column is out of range!");
+	}
+
 	size_t rowsCount = rows.size();
 
 	size_t counter = 0;
@@ -207,6 +214,11 @@ size_t db::Table::CountCertainRows(size_t colToSearch, DbType * elementToSearch)
 
 void db::Table::DeleteCertainRows(size_t colToSearch, DbType * elementToSearch)
 {
+	if (colToSearch < 0 || colToSearch >= headerCols.size())
+	{
+		throw OutOfRangeException("Search column is out of range!");
+	}
+
 	size_t rowsCount = rows.size();
 	vector<size_t> indexesToDelete;
 
@@ -218,14 +230,28 @@ void db::Table::DeleteCertainRows(size_t colToSearch, DbType * elementToSearch)
 		}
 	}
 
-	for (size_t ind = 0; ind < indexesToDelete.size(); ind++)
+	size_t amountOfIndexes = indexesToDelete.size();
+	for (size_t ind = 0; ind < amountOfIndexes; ind++)
 	{
 		DeleteRow(indexesToDelete[ind]);
+		for (size_t innerInd = ind + 1; innerInd < amountOfIndexes; innerInd++)
+		{
+			--indexesToDelete[innerInd];
+		}
 	}
 }
 
 void db::Table::UpdateCertainRows(size_t colToSearch, DbType * elementToSearch, size_t colToChange, DbType * valueToSet)
 {
+	if (colToSearch >= headerCols.size() || colToSearch < 0)
+	{
+		throw OutOfRangeException("Search column is out of range!");
+	}
+	if (colToChange >= headerCols.size() || colToChange < 0)
+	{
+		throw OutOfRangeException("Change column is out of range!");
+	}
+
 	size_t rowsCount = rows.size();
 
 	for (size_t ind = 0; ind < rowsCount; ind++)
@@ -239,6 +265,11 @@ void db::Table::UpdateCertainRows(size_t colToSearch, DbType * elementToSearch, 
 
 vector<Row> db::Table::SelectCertainRows(size_t colToSearch, DbType * elementToSearch) const
 {
+	if (colToSearch >= headerCols.size() || colToSearch < 0)
+	{
+		throw OutOfRangeException("Search column is out of range!");
+	}
+
 	size_t rowsAmount = rows.size();
 	vector<Row> result;
 

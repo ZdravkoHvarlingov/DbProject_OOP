@@ -101,5 +101,11 @@ size_t db::Decimal::GetValueLength() const
 
 	unsigned int modValue = fabs(decimal);
 
-	return (size_t)log10(modValue) + 1 + MaxFloatingPoints;
+	size_t result = (size_t)log10(modValue) + 1 + MaxFloatingPoints + 1; //because of the floating point
+	if (decimal < 0)
+	{
+		++result;
+	}
+
+	return result;
 }
