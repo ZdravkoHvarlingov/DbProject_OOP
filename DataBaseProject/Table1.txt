@@ -1,7 +1,7 @@
 Test table
 5
 "Id_auto" Integer "Name" Text "Age" Integer "Grade" Decimal "number of friends" Integer 
-48
+51
 0 "NOTNULL" 12 NULL NULL
 1 "novoime-idiot" 11 1.560 3
 2 "okay" 11 1.560 3
@@ -50,3 +50,6 @@ Test table
 45 "zdrasdfsdfvkopich" 11 1.560 3
 46 "zdravko" 11 1.560 3
 47 "zd\\ra\\\"  vkopich \\\\" NULL -11.000 NULL
+48 "zdravko" 20 6.000 11
+49 "Nunkata" 20 3.120 123
+50 "zdravko" 123 12.000 12

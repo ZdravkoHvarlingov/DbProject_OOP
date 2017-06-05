@@ -38,6 +38,14 @@ void ConsoleCommandHandler::StartListening()
 		{
 			LoadFunc(input);
 		}
+		else if (input == "CreateTable")
+		{
+			CreateTableFunc();
+		}
+		else if (input == "DeleteTable")
+		{
+			DeleteTableFunc();
+		}
 		else if (input == "Save")
 		{
 			SaveFunc();
@@ -62,6 +70,18 @@ void ConsoleCommandHandler::StartListening()
 		{
 			DeleteFunc();
 		}
+		else if (input == "Insert")
+		{
+			InsertFunc();
+		}
+		else if (input == "InnerJoin")
+		{
+			InnerJoinFunc();
+		}
+		else if (input == "Rename")
+		{
+			RenameFunc();
+		}
 		else if (input == "Help")
 		{
 			PrintHelp();
@@ -83,6 +103,173 @@ void ConsoleCommandHandler::StartListening()
 	}
 
 	cout << "db > Program exit...\n";
+}
+
+void ConsoleCommandHandler::DeleteTableFunc()
+{
+	cin.ignore();
+
+	try
+	{
+		Text tableName;
+		tableName.DeSerialize(cin);
+		int tableIndex = GetTableIndex(tableName.GetValueAsString());
+
+		if (tableIndex != -1)
+		{
+			loadedTables.erase(loadedTables.begin() + tableIndex);
+			cout << "db > Table deleted successfully!\n";
+		}
+		else cout << "db > There is NO such table!\n";
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid arguments! " << e.what() << '\n';
+	}
+}
+
+void ConsoleCommandHandler::CreateTableFunc()
+{
+	cin.ignore();
+
+	try
+	{
+		Text tableName;
+		tableName.DeSerialize(cin);
+
+		if (GetTableIndex(tableName.GetValueAsString()) == -1)
+		{
+			loadedTables.push_back(Table(tableName.GetValueAsString()));
+			cout << "db > Table created successfully!\n";
+		}
+		else cout << "db > There is already such table!\n";
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid arguments! " << e.what() << '\n';
+	}
+}
+
+void ConsoleCommandHandler::RenameFunc()
+{
+	cin.ignore();
+
+	try
+	{
+		Text tableName;
+		tableName.DeSerialize(cin);
+		cin.ignore();
+
+		int tblIndex = GetTableIndex(tableName.GetValueAsString());
+		if (tblIndex != -1)
+		{
+			tableName.DeSerialize(cin);
+
+			int newNameIndex = GetTableIndex(tableName.GetValueAsString());
+			if (newNameIndex == -1)
+			{
+				loadedTables[tblIndex].SetName(tableName.GetValueAsString());
+				cout << "db > Table renamed successfully!\n";
+			}
+			else cout << "db > A table with the new name already exist!\n";
+		}
+		else
+		{
+			cout << "db > There is no such table!\n";
+		}
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid command arguments! " << e.what() << '\n';
+	}
+}
+
+void ConsoleCommandHandler::InnerJoinFunc()
+{
+	cin.ignore();
+
+	try
+	{
+		Text firstTableName;
+		firstTableName.DeSerialize(cin);
+		cin.ignore();
+
+		Integer firstCol;
+		firstCol.DeSerialize(cin);
+		cin.ignore();
+
+		Text secondTableName;
+		secondTableName.DeSerialize(cin);
+		cin.ignore();
+
+		Integer secondCol;
+		secondCol.DeSerialize(cin);
+
+		int firstTableIndex = GetTableIndex(firstTableName.GetValueAsString());
+		int secondTableIndex = GetTableIndex(secondTableName.GetValueAsString());
+
+		if (firstTableIndex != -1 && secondTableIndex != -1)
+		{
+			Table innerJoin = InnerJoin(loadedTables[firstTableIndex], firstCol.GetValueAsInt(),
+				loadedTables[secondTableIndex], secondCol.GetValueAsInt());
+
+			int innerJoinIndex = GetTableIndex(innerJoin.GetName());
+			if (innerJoinIndex == -1)
+			{
+				loadedTables.push_back(innerJoin);
+				cout << "db > Table made successfully. Its name is: \"" << innerJoin.GetName() << "\".\n";
+			}
+			else cout << "db > There is already such table! Rename or delete it in order to execute the command!\n";
+		}
+		else cout << "db > Invalid tables!\n";
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid command arguments! " << e.what() << '\n';
+	}
+}
+
+void ConsoleCommandHandler::InsertFunc()
+{
+	cin.ignore(); //removes white space after Insert string
+
+	try
+	{
+		Text tableName;
+		tableName.DeSerialize(cin);
+		cin.ignore();
+
+		int tableIndex = GetTableIndex(tableName.GetValueAsString());
+		if (tableIndex != -1)
+		{
+			size_t amountOfCols = loadedTables[tableIndex].GetAmountOfColumns();
+
+			vector<DbType*> valueTypes;
+			for (size_t ind = 1; ind < amountOfCols; ind++)
+			{
+				valueTypes.push_back(db::DbTypeFactory::GetNewType(loadedTables[tableIndex].GetColType(ind))); //dynamically allocated
+			}
+
+			Row valuesToGet;
+			valuesToGet.Deserialize(cin, valueTypes);
+			cin.putback('\n');
+			loadedTables[tableIndex].MakeNewRow(valuesToGet);
+
+			for (size_t ind = 0; ind < amountOfCols - 1; ind++)
+			{
+				delete valueTypes[ind];
+			}
+			cout << "db > Table row added successfully!\n";
+		}
+		else
+		{
+			cout << "db > There is no such table!\n";
+		}
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid command arguments! " << e.what() << "\n";
+	}
 }
 
 void ConsoleCommandHandler::DeleteFunc()
@@ -326,7 +513,8 @@ void ConsoleCommandHandler::PrintHelp() const
 		"*** All table names or text(string) cells should be typed with quotes!\n" <<
 		"*** Database types are: Text, Integer, Decimal. Type them without quotes!\n" <<
 		"*** Cells can be null - null is typed NULL in the terminal without quotes.\n"
-		"*** Characters \" and \\ should be escaped in the table names and text(string) cells with backslash \\ !\n\n" <<
+		"*** Characters \" and \\ should be escaped in the table names and text(string) cells with backslash \\ !\n" 
+		"*** Id_auto column should not be entered. It is auto generated. Do not change or delete it!\n\n"<<
 		"Commands:\n" 
 		"1) Load \"file_name\" - loads a single table from a file\n" 
 		"2) Showtables - prints all the table names currently loaded\n" 
@@ -334,10 +522,15 @@ void ConsoleCommandHandler::PrintHelp() const
 		"4) Print \"table_name\" - prints the table content in a preview mode.\n" 
 		"5) Save \"table_name\" \"file_name\" - saves the table content in a file.\n"
 		"6) Select column_number \"table_name\" value_to_search - prints rows with the selected value at column column_number.\n"
-		"7) AddColumn \"table_name\" \"column_name\" column_type - Adds a new column to the selected table.\n"
+		"7) AddColumn \"table_name\" \"column_name\" column_type - adds a new column to the selected table.\n"
 		"8) Update \"table_name\" colToSearch_number <valueToSearch> colToChange_number <updateValue> - updates certain rows of the table.\n"
 		"9) Delete \"table_name\" colToSearch_number <valueToSearch> - deletes certain rows of the table.\n"
-		"10) Exit - program exit.\n\n";
+		"10) Insert \"table name\" <column 1> … <column n> - insert a row in the table with the entered values.\n"
+		"11) InnerJoin \"first_table\" <column> \"second_table\" <column> - makes a inner join table.\n"
+		"12) Rename \"old_table_name\" \"new_name\" - renames the table in case the name is available.\n"
+		"13) CreateTable \"table_name\" - creates a table with the entered name if it is available.\n"
+		"14) DeleteTable \"table_name\" - deletes the table with entered name, if it exist.\n"
+		"15) Exit - program exit.\n\n";
 }
 
 void ConsoleCommandHandler::PrintTableDescription(const string & tableName) const

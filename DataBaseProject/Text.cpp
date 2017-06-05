@@ -88,7 +88,7 @@ void db::Text::DeSerialize(istream & inStr)
 		result += inStr.get();
 		result += inStr.get();
 
-		if (result == "NULL")
+		if (result == "NULL" && (inStr.peek() == ' ' || inStr.peek() == '\n' || inStr.eof()))
 		{
 			text = "";
 			SetNull();

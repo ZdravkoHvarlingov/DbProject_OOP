@@ -1,0 +1,6 @@
+ZdravkoTable
+3
+"Id_auto" Integer "name" Text "Age" Integer 
+2
+0 "firstName" 11
+1 NULL 11

@@ -1,10 +1,10 @@
-second table
+Second test table
 4
 "Id_auto" Integer "Name" Text "Age" Integer "Grade" Decimal 
 6
 0 NULL NULL NULL
-1 "zdravkopich" 11 1.56
-2 "zdravkopich" 11 1.56
-3 "zdravkopich" 11 1.56
-4 "zdravkopich" 11 1.56
+1 "zdravkopich" 11 1.560
+2 "zdravkopich" 11 1.560
+3 "zdravkopich" 11 1.560
+4 "zdravkopich" 11 1.560
 5 NULL NULL NULL

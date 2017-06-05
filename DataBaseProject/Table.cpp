@@ -389,6 +389,11 @@ db::Table db::InnerJoin(const Table & firstTable, size_t firstCol, const Table &
 	size_t firstTableCols = firstTable.headerCols.size();
 	size_t secondTableCols = secondTable.headerCols.size();
 
+	if (firstCol < 0 || firstCol >= firstTableCols || secondCol < 0 || secondCol >= secondTableCols)
+	{
+		throw OutOfRangeException("Invalid inner join columns!");
+	}
+
 	for (size_t ind = 0; ind < firstTableCols; ind++)
 	{
 		result.AddNewColumn("FTable:" + firstTable.headerCols[ind].headerName, firstTable.headerCols[ind].headerType);

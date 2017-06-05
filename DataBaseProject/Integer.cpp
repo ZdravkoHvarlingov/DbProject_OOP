@@ -59,13 +59,14 @@ void db::Integer::DeSerialize(istream & inStr)
 		nullStr += inStr.get();
 		nullStr += inStr.get();
 
-		if (nullStr == "NULL")
+		if (nullStr == "NULL" && (inStr.peek() == ' ' || inStr.peek() == '\n' || inStr.eof()))
 		{
 			number = 0;
 			SetNull();
 
 			return;
 		}
+		else throw InconsistentTypesException("Can not convert proper to Integer!");
 	}
 
 	inStr >> number;

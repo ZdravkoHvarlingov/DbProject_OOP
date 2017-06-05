@@ -60,13 +60,14 @@ void db::Decimal::DeSerialize(istream & inStr)
 		nullStr += inStr.get();
 		nullStr += inStr.get();
 
-		if (nullStr == "NULL")
+		if (nullStr == "NULL" && (inStr.peek() == ' ' || inStr.peek() == '\n' || inStr.eof()))
 		{
 			decimal = 0;
 			SetNull();
 
 			return;
 		}
+		else throw InconsistentTypesException("Can not convert proper to Decimal!");
 	}
 
 	inStr >> decimal;

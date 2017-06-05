@@ -12,6 +12,16 @@ class ConsoleCommandHandler
 public:
 
 	void StartListening();
+
+	void DeleteTableFunc();
+
+	void CreateTableFunc();
+
+	void RenameFunc();
+
+	void InnerJoinFunc();
+
+	void InsertFunc();
 	
 	void PrintHelp() const;
 	void PrintTableDescription(const string& tableName) const;
