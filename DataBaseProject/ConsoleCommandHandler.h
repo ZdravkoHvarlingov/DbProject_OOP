@@ -13,6 +13,10 @@ public:
 
 	void StartListening();
 
+	void RightOuterJoinSwitchFunc();
+
+	void LeftOuterJoinSwitchFunc();
+
 	double AggregateSpecificCommand(const string &command, const string &targetColumnType, int tableIndex, const Integer &searchColumn,
 		PointerWrapper<db::DbType> &searchValue, const Integer &targetColumn, bool &isValidCommand);
 

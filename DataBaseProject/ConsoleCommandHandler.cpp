@@ -81,6 +81,14 @@ void ConsoleCommandHandler::StartListening()
 		{
 			InnerJoinSwitchFunc();
 		}
+		else if (input == "LeftOuterJoin")
+		{
+			LeftOuterJoinSwitchFunc();
+		}
+		else if (input == "RightOuterJoin")
+		{
+			RightOuterJoinSwitchFunc();
+		}
 		else if (input == "Rename")
 		{
 			RenameTableSwitchFunc();
@@ -114,6 +122,96 @@ void ConsoleCommandHandler::StartListening()
 	}
 
 	cout << "db > Program exit...\n";
+}
+
+void ConsoleCommandHandler::RightOuterJoinSwitchFunc()
+{
+	cin.ignore();
+
+	try
+	{
+		Text firstTableName;
+		firstTableName.DeSerialize(cin);
+		cin.ignore();
+
+		Integer firstCol;
+		firstCol.DeSerialize(cin);
+		cin.ignore();
+
+		Text secondTableName;
+		secondTableName.DeSerialize(cin);
+		cin.ignore();
+
+		Integer secondCol;
+		secondCol.DeSerialize(cin);
+
+		int firstTableIndex = GetTableIndex(firstTableName.GetValueAsString());
+		int secondTableIndex = GetTableIndex(secondTableName.GetValueAsString());
+
+		if (firstTableIndex != -1 && secondTableIndex != -1)
+		{
+			Table rightOuterJoin = loadedTables[firstTableIndex].RightOuterJoin(firstCol.GetValueAsInt(),
+				loadedTables[secondTableIndex], secondCol.GetValueAsInt());
+
+			int innerJoinIndex = GetTableIndex(rightOuterJoin.GetName());
+			if (innerJoinIndex == -1)
+			{
+				loadedTables.push_back(rightOuterJoin);
+				cout << "db > Table made successfully. Its name is: \"" << rightOuterJoin.GetName() << "\".\n";
+			}
+			else cout << "db > There is already such table! Rename or delete it in order to execute the command!\n";
+		}
+		else cout << "db > Invalid tables!\n";
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid command arguments! " << e.what() << '\n';
+	}
+}
+
+void ConsoleCommandHandler::LeftOuterJoinSwitchFunc()
+{
+	cin.ignore();
+
+	try
+	{
+		Text firstTableName;
+		firstTableName.DeSerialize(cin);
+		cin.ignore();
+
+		Integer firstCol;
+		firstCol.DeSerialize(cin);
+		cin.ignore();
+
+		Text secondTableName;
+		secondTableName.DeSerialize(cin);
+		cin.ignore();
+
+		Integer secondCol;
+		secondCol.DeSerialize(cin);
+
+		int firstTableIndex = GetTableIndex(firstTableName.GetValueAsString());
+		int secondTableIndex = GetTableIndex(secondTableName.GetValueAsString());
+
+		if (firstTableIndex != -1 && secondTableIndex != -1)
+		{
+			Table leftOuterJoin = loadedTables[firstTableIndex].LeftOuterJoin(firstCol.GetValueAsInt(),
+				loadedTables[secondTableIndex], secondCol.GetValueAsInt());
+
+			int innerJoinIndex = GetTableIndex(leftOuterJoin.GetName());
+			if (innerJoinIndex == -1)
+			{
+				loadedTables.push_back(leftOuterJoin);
+				cout << "db > Table made successfully. Its name is: \"" << leftOuterJoin.GetName() << "\".\n";
+			}
+			else cout << "db > There is already such table! Rename or delete it in order to execute the command!\n";
+		}
+		else cout << "db > Invalid tables!\n";
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid command arguments! " << e.what() << '\n';
+	}
 }
 
 void ConsoleCommandHandler::AggregateSwitchFunc()

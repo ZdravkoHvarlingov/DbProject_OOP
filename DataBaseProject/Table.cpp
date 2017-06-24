@@ -378,7 +378,7 @@ istream & db::operator>>(istream & inStr, Table & tableToInit)
 	return inStr;
 }
 
-db::Table db::Table::InnerJoin(size_t firstCol, const db::Table & secondTable, size_t secondCol)
+db::Table db::Table::InnerJoin(size_t firstCol, const db::Table & secondTable, size_t secondCol) const
 {
 	db::Table result("InnerJoin: " + GetName() + ", " + secondTable.GetName());
 
@@ -390,7 +390,7 @@ db::Table db::Table::InnerJoin(size_t firstCol, const db::Table & secondTable, s
 		throw OutOfRangeException("Invalid inner join columns!");
 	}
 
-	for (size_t ind = 0; ind <= firstCol; ind++)
+	for (size_t ind = 0; ind < firstTableCols; ind++)
 	{
 		result.AddNewColumn("FTable:" + headerCols[ind].headerName, headerCols[ind].headerType);
 	}
@@ -398,11 +398,6 @@ db::Table db::Table::InnerJoin(size_t firstCol, const db::Table & secondTable, s
 	for (size_t ind = 0; ind < secondTableCols; ind++)
 	{
 		result.AddNewColumn("STable:" + secondTable.headerCols[ind].headerName, secondTable.headerCols[ind].headerType);
-	}
-
-	for (size_t ind = firstCol + 1; ind < firstTableCols; ind++)
-	{
-		result.AddNewColumn("FTable:" + headerCols[ind].headerName, headerCols[ind].headerType);
 	}
 
 	size_t firstTableRows = rows.size();
@@ -414,7 +409,7 @@ db::Table db::Table::InnerJoin(size_t firstCol, const db::Table & secondTable, s
 			if (rows[fInd][firstCol]->AreEqual(secondTable.rows[sInd][secondCol]))
 			{
 				Row rowToAdd;
-				for (size_t fCols = 0; fCols <= firstCol; fCols++)
+				for (size_t fCols = 0; fCols < firstTableCols; fCols++)
 				{
 					rowToAdd.AddColumn(rows[fInd][fCols]);
 				}
@@ -424,15 +419,86 @@ db::Table db::Table::InnerJoin(size_t firstCol, const db::Table & secondTable, s
 					rowToAdd.AddColumn(secondTable.rows[sInd][sCols]);
 				}
 
-				for (size_t fCols = firstCol + 1; fCols < firstTableCols; fCols++)
+				result.MakeNewRow(rowToAdd);
+			}
+		}
+	}
+
+	return result;
+}
+
+db::Table db::Table::LeftOuterJoin(size_t firstCol, const Table & secondTable, size_t secondCol) const
+{
+	db::Table result("LeftOuterJoin: " + GetName() + ", " + secondTable.GetName());
+
+	size_t firstTableCols = headerCols.size();
+	size_t secondTableCols = secondTable.headerCols.size();
+
+	if (firstCol < 0 || firstCol >= firstTableCols || secondCol < 0 || secondCol >= secondTableCols)
+	{
+		throw OutOfRangeException("Invalid join columns!");
+	}
+
+	for (size_t ind = 0; ind < firstTableCols; ind++)
+	{
+		result.AddNewColumn("FTable:" + headerCols[ind].headerName, headerCols[ind].headerType);
+	}
+
+	for (size_t ind = 0; ind < secondTableCols; ind++)
+	{
+		result.AddNewColumn("STable:" + secondTable.headerCols[ind].headerName, secondTable.headerCols[ind].headerType);
+	}
+
+	size_t firstTableRows = rows.size();
+	size_t secondTableRows = secondTable.rows.size();
+	for (size_t fInd = 0; fInd < firstTableRows; fInd++)
+	{
+		bool hasFoundMatch = false;
+		for (size_t sInd = 0; sInd < secondTableRows; sInd++)
+		{
+			if (rows[fInd][firstCol]->AreEqual(secondTable.rows[sInd][secondCol]))
+			{
+				hasFoundMatch = true;
+
+				Row rowToAdd;
+				for (size_t fCols = 0; fCols < firstTableCols; fCols++)
 				{
 					rowToAdd.AddColumn(rows[fInd][fCols]);
+				}
+
+				for (size_t sCols = 0; sCols < secondTableCols; sCols++)
+				{
+					rowToAdd.AddColumn(secondTable.rows[sInd][sCols]);
 				}
 
 				result.MakeNewRow(rowToAdd);
 			}
 		}
+
+		if (!hasFoundMatch)
+		{
+			Row rowToAdd;
+			for (size_t fCols = 0; fCols < firstTableCols; fCols++)
+			{
+				rowToAdd.AddColumn(rows[fInd][fCols]);
+			}
+
+			for (size_t sCols = 0; sCols < secondTableCols; sCols++)
+			{
+				rowToAdd.AddNullColumn(secondTable.headerCols[sCols].headerType);
+			}
+
+			result.MakeNewRow(rowToAdd);
+		}
 	}
+
+	return result;
+}
+
+db::Table db::Table::RightOuterJoin(size_t firstCol, const Table & secondTable, size_t secondCol) const
+{
+	Table result = secondTable.LeftOuterJoin(secondCol, *this, firstCol);
+	result.SetName("RightOuterJoin: " + this->GetName() + ", " + secondTable.GetName());
 
 	return result;
 }

@@ -33,7 +33,9 @@ namespace db
 		void MakeNewRow(const Row& _rowToAdd);
 		void AddNewColumn(const string& _colName,const string& _colType);  //, bool _canBeNull);
 
-		Table InnerJoin(size_t firstCol, const Table& secondTable, size_t secondCol);
+		Table InnerJoin(size_t firstCol, const Table& secondTable, size_t secondCol) const;
+		Table LeftOuterJoin(size_t firstCol, const Table& secondTable, size_t secondCol) const;
+		Table RightOuterJoin(size_t firstCol, const Table& secondTable, size_t secondCol) const;
 
 		template <typename ResT>
 		ResT Aggregate(size_t colToSearch, DbType* valueToSearch, size_t colToAgg, AggFun<ResT> function, ResT initValue) const;
