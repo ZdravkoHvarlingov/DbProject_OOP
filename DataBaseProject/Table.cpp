@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iomanip>
 #include "DbTypeFactory.h"
+#include "PointerWrapper.h"
 
 using db::DbTypeFactory;
 using db::NoHeaderRowException;
@@ -203,7 +204,7 @@ size_t db::Table::CountCertainRows(size_t colToSearch, DbType * elementToSearch)
 
 	for (size_t ind = 0; ind < rowsCount; ind++)
 	{
-		if (rows[ind][colToSearch]->AreEqual(elementToSearch))
+		if (rows[ind][colToSearch]->AreEqual(elementToSearch)) //throws exceptions if types are different
 		{
 			counter++;
 		}
@@ -352,7 +353,7 @@ istream & db::operator>>(istream & inStr, Table & tableToInit)
 
 	Text columnText;
 
-	vector<DbType*> colTypes;
+	vector<PointerWrapper<DbType>> colTypes;
 	for (size_t ind = 0; ind < inpNumber; ind++) //deserialize columns
 	{
 		columnText.DeSerialize(inStr);
@@ -360,7 +361,7 @@ istream & db::operator>>(istream & inStr, Table & tableToInit)
 		inStr.ignore();
 
 		tableToInit.AddNewColumn(columnText.GetValueAsString(), input);
-		colTypes.push_back(DbTypeFactory::GetNewType(input));
+		colTypes.push_back(PointerWrapper<DbType>(DbTypeFactory::GetNewType(input)));
 	}
 
 	inStr >> inpNumber;
@@ -371,11 +372,6 @@ istream & db::operator>>(istream & inStr, Table & tableToInit)
 		Row rowToAdd;
 		rowToAdd.Deserialize(inStr, colTypes); //deserialize rows
 		tableToInit.rows.push_back(rowToAdd);
-	}
-
-	for (size_t ind = 0; ind < colTypes.size(); ind++)
-	{
-		delete colTypes[ind];
 	}
 
 	tableToInit.autoIncrement = tableToInit.rows[inpNumber - 1][0]->GetValueAsInt() + 1;

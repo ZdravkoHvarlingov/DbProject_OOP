@@ -7,6 +7,7 @@
 #include "Integer.h"
 #include "Decimal.h"
 #include "Text.h"
+#include "PointerWrapper.h"
 #include <iostream>
 
 using std::ostream;
@@ -38,7 +39,7 @@ namespace db
 		void Serialize(ostream& outStr) const;
 		string GetAsString(vector<size_t> setWSizes) const;
 
-		void Deserialize(istream& inStr, vector<DbType*> types);
+		void Deserialize(istream& inStr, vector<PointerWrapper<DbType>>& types);
 
 		Row();
 		Row(const Row& other);

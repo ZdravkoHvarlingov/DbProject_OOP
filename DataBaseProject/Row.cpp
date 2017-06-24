@@ -120,7 +120,7 @@ string db::Row::GetAsString(vector<size_t> setWSizes) const
 	return sstream.str();
 }
 
-void db::Row::Deserialize(istream & inStr, vector<DbType*> types)
+void db::Row::Deserialize(istream & inStr, vector<PointerWrapper<DbType>>& types)
 {
 	size_t vectSize = types.size();
 
@@ -129,7 +129,7 @@ void db::Row::Deserialize(istream & inStr, vector<DbType*> types)
 		types[ind]->DeSerialize(inStr);
 		inStr.ignore();
 
-		AddColumn(types[ind]);
+		AddColumn(types[ind].operator->());
 	}
 }
 

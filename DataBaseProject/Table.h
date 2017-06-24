@@ -3,9 +3,11 @@
 
 #include "Row.h"
 #include "InconsistentTypesException.h"
+#include "OutOfRangeException.h"
 
 using db::Row;
 using db::InconsistentTypesException;
+using db::OutOfRangeException;
 
 template <typename T>
 using AggFun = T(*)(T, T);
@@ -69,11 +71,17 @@ namespace db
 	inline ResT Table::Aggregate(size_t colToSearch, DbType * valueToSearch, 
 		size_t colToAgg, AggFun<ResT> function, ResT initValue) const
 	{
+		size_t maxColSize = headerCols.size();
+		if (colToSearch < 0 || colToAgg <0 || colToSearch >= maxColSize || colToAgg >= maxColSize)
+		{
+			throw OutOfRangeException("Columns to search and aggregate are out of range!");
+		}
+
 		string type = headerCols[colToAgg].headerType;
 
 		if (type == "Text")
 		{
-			throw InconsistentTypesException("Can not use aggregate function with type \"Text\"");
+			throw InconsistentTypesException("Can not use aggregate function with type \"Text\"!");
 		}
 
 		size_t rowsCount = rows.size();

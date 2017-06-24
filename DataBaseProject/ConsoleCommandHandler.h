@@ -13,16 +13,9 @@ public:
 
 	void StartListening();
 
-	void DeleteTableFunc();
+	double AggregateSpecificCommand(const string &command, const string &targetColumnType, int tableIndex, const Integer &searchColumn,
+		PointerWrapper<db::DbType> &searchValue, const Integer &targetColumn, bool &isValidCommand);
 
-	void CreateTableFunc();
-
-	void RenameFunc();
-
-	void InnerJoinFunc();
-
-	void InsertFunc();
-	
 	void PrintHelp() const;
 	void PrintTableDescription(const string& tableName) const;
 	void PrintTableInPreviewMode(const string& tableName, const vector<Row>& tableRows) const;
@@ -37,14 +30,21 @@ public:
 
 private:
 
-	void DeleteFunc();
-	void UpdateFunc();
-	void AddColumnFunc();
-	void SaveFunc();
-	void DescribeFunc();
-	void LoadFunc(std::string &input);
-	void PrintPreviewFunc(std::string &input);
-	void SelectFunc();
+	void AggregateSwitchFunc();
+	void CountSwitchFunc();
+	void DeleteTableSwitchFunc();
+	void CreateTableSwitchFunc();
+	void RenameTableSwitchFunc();
+	void InnerJoinSwitchFunc();
+	void InsertSwitchFunc();
+	void DeleteSwitchFunc();
+	void UpdateSwitchFunc();
+	void AddColumnSwitchFunc();
+	void SaveTableSwitchFunc();
+	void DescribeTableFunc();
+	void LoadTableSwitchFunc(std::string &input);
+	void PrintPreviewSwitchFunc(std::string &input);
+	void SelectSwitchFunc();
 
 	vector<Table> loadedTables;
 };

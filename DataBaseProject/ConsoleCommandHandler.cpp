@@ -9,6 +9,9 @@
 #include <windows.h>
 #include <conio.h>
 #include <limits>
+#include "PointerWrapper.h"
+#include "TableUtilities.h"
+#include <limits>
 
 using std::cout;
 using std::cin;
@@ -28,7 +31,7 @@ void ConsoleCommandHandler::StartListening()
 	{
 		if (input == "Describe")
 		{
-			DescribeFunc();
+			DescribeTableFunc();
 		}
 		else if (input == "Showtables")
 		{
@@ -36,51 +39,59 @@ void ConsoleCommandHandler::StartListening()
 		}
 		else if (input == "Load")
 		{
-			LoadFunc(input);
+			LoadTableSwitchFunc(input);
 		}
 		else if (input == "CreateTable")
 		{
-			CreateTableFunc();
+			CreateTableSwitchFunc();
 		}
 		else if (input == "DeleteTable")
 		{
-			DeleteTableFunc();
+			DeleteTableSwitchFunc();
 		}
 		else if (input == "Save")
 		{
-			SaveFunc();
+			SaveTableSwitchFunc();
 		}
 		else if (input == "Print")
 		{
-			PrintPreviewFunc(input);
+			PrintPreviewSwitchFunc(input);
 		}
 		else if (input == "Select")
 		{
-			SelectFunc();
+			SelectSwitchFunc();
 		}
 		else if (input == "AddColumn")
 		{
-			AddColumnFunc();
+			AddColumnSwitchFunc();
 		}
 		else if (input == "Update")
 		{
-			UpdateFunc();
+			UpdateSwitchFunc();
 		}
 		else if(input == "Delete")
 		{
-			DeleteFunc();
+			DeleteSwitchFunc();
 		}
 		else if (input == "Insert")
 		{
-			InsertFunc();
+			InsertSwitchFunc();
 		}
 		else if (input == "InnerJoin")
 		{
-			InnerJoinFunc();
+			InnerJoinSwitchFunc();
 		}
 		else if (input == "Rename")
 		{
-			RenameFunc();
+			RenameTableSwitchFunc();
+		}
+		else if (input == "Count")
+		{
+			CountSwitchFunc();
+		}
+		else if (input == "Aggregate")
+		{
+			AggregateSwitchFunc();
 		}
 		else if (input == "Help")
 		{
@@ -105,7 +116,158 @@ void ConsoleCommandHandler::StartListening()
 	cout << "db > Program exit...\n";
 }
 
-void ConsoleCommandHandler::DeleteTableFunc()
+void ConsoleCommandHandler::AggregateSwitchFunc()
+{
+	cin.ignore();
+	try
+	{
+		Text tableName;
+		tableName.DeSerialize(cin);
+		cin.ignore();
+		int tableIndex = GetTableIndex(tableName.GetValueAsString());
+
+		if (tableIndex != -1)
+		{
+			Integer searchColumn;
+			searchColumn.DeSerialize(cin);
+			cin.ignore();
+
+			string searchColType = loadedTables[tableIndex].GetColType(searchColumn.GetValueAsInt());
+			PointerWrapper<DbType> searchValue(db::DbTypeFactory::GetNewType(searchColType));
+			searchValue->DeSerialize(cin);
+			cin.ignore();
+
+			Integer targetColumn;
+			targetColumn.DeSerialize(cin);
+			cin.ignore();
+
+			string command;
+			cin >> command;
+
+			bool isValidCommand = true;
+			string targetColumnType = loadedTables[tableIndex].GetColType(targetColumn.GetValueAsInt());
+			double result = AggregateSpecificCommand(command, targetColumnType, tableIndex,
+				searchColumn, searchValue, targetColumn, isValidCommand);
+
+			if (isValidCommand)
+			{
+				cout << "db > The result is: " << result << '\n';
+			}
+			else
+			{
+				cout << "db > Invalid operation!\n";
+			}
+		}
+		else
+		{
+			cout << "db > There is no such table!\n";
+		}
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid command arguments! " << e.what() << '\n';
+	}
+}
+
+double ConsoleCommandHandler::AggregateSpecificCommand(const string &command, const string &targetColumnType, int tableIndex,
+	const Integer &searchColumn, PointerWrapper<db::DbType> &searchValue, const Integer &targetColumn, bool &isValidCommand)
+{
+	double result = 0;
+	if (command == "sum")
+	{
+		if (targetColumnType == "Decimal")
+		{
+			result = loadedTables[tableIndex].Aggregate<double>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+				targetColumn.GetValueAsInt(), db::TableUtilities::SumOfNumbers, 0.0);
+		}
+		else
+		{
+			result = loadedTables[tableIndex].Aggregate<int>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+				targetColumn.GetValueAsInt(), db::TableUtilities::SumOfNumbers, 0);
+		}
+	}
+	else if (command == "product")
+	{
+		if (targetColumnType == "Decimal")
+		{
+			result = loadedTables[tableIndex].Aggregate<double>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+				targetColumn.GetValueAsInt(), db::TableUtilities::ProductOfNumbers, 1.0);
+		}
+		else
+		{
+			result = loadedTables[tableIndex].Aggregate<int>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+				targetColumn.GetValueAsInt(), db::TableUtilities::ProductOfNumbers, 1);
+		}
+	}
+	else if (command == "maximum")
+	{
+		if (targetColumnType == "Decimal")
+		{
+			result = loadedTables[tableIndex].Aggregate<double>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+				targetColumn.GetValueAsInt(), db::TableUtilities::MaximumOfNumbers, std::numeric_limits<double>::min());
+		}
+		else
+		{
+			result = loadedTables[tableIndex].Aggregate<int>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+				targetColumn.GetValueAsInt(), db::TableUtilities::MaximumOfNumbers, std::numeric_limits<int>::min());
+		}
+	}
+	else if (command == "minimum")
+	{
+		if (targetColumnType == "Decimal")
+		{
+			result = loadedTables[tableIndex].Aggregate<double>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+				targetColumn.GetValueAsInt(), db::TableUtilities::MinimumOfNumbers, std::numeric_limits<double>::max());
+		}
+		else
+		{
+			result = loadedTables[tableIndex].Aggregate<int>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+				targetColumn.GetValueAsInt(), db::TableUtilities::MinimumOfNumbers, std::numeric_limits<int>::max());
+		}
+	}
+	else
+	{
+		isValidCommand = false;
+	}
+
+	return result;
+}
+
+void ConsoleCommandHandler::CountSwitchFunc()
+{
+	cin.ignore();
+	try
+	{
+		Text tableName;
+		tableName.DeSerialize(cin);
+		cin.ignore();
+
+		int tableIndex = GetTableIndex(tableName.GetValueAsString());
+		if (tableIndex != -1)
+		{
+			Integer searchColumn;
+			searchColumn.DeSerialize(cin);
+			cin.ignore();
+
+			string type = loadedTables[tableIndex].GetColType(searchColumn.GetValueAsInt());
+			PointerWrapper<DbType> valueToDeserialize(db::DbTypeFactory::GetNewType(type));
+			valueToDeserialize->DeSerialize(cin);
+
+			int counter = loadedTables[tableIndex].CountCertainRows(searchColumn.GetValueAsInt(), valueToDeserialize.operator->());
+			cout << "db > Amount of such rows: " << counter << '\n';
+		}
+		else
+		{
+			cout << "db > There is no such table!\n";
+		}
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid command arguments! " << e.what() << '\n';
+	}
+}
+
+void ConsoleCommandHandler::DeleteTableSwitchFunc()
 {
 	cin.ignore();
 
@@ -128,7 +290,7 @@ void ConsoleCommandHandler::DeleteTableFunc()
 	}
 }
 
-void ConsoleCommandHandler::CreateTableFunc()
+void ConsoleCommandHandler::CreateTableSwitchFunc()
 {
 	cin.ignore();
 
@@ -150,7 +312,7 @@ void ConsoleCommandHandler::CreateTableFunc()
 	}
 }
 
-void ConsoleCommandHandler::RenameFunc()
+void ConsoleCommandHandler::RenameTableSwitchFunc()
 {
 	cin.ignore();
 
@@ -184,7 +346,7 @@ void ConsoleCommandHandler::RenameFunc()
 	}
 }
 
-void ConsoleCommandHandler::InnerJoinFunc()
+void ConsoleCommandHandler::InnerJoinSwitchFunc()
 {
 	cin.ignore();
 
@@ -229,7 +391,7 @@ void ConsoleCommandHandler::InnerJoinFunc()
 	}
 }
 
-void ConsoleCommandHandler::InsertFunc()
+void ConsoleCommandHandler::InsertSwitchFunc()
 {
 	cin.ignore(); //removes white space after Insert string
 
@@ -244,10 +406,11 @@ void ConsoleCommandHandler::InsertFunc()
 		{
 			size_t amountOfCols = loadedTables[tableIndex].GetAmountOfColumns();
 
-			vector<DbType*> valueTypes;
+			vector<PointerWrapper<DbType>> valueTypes;
 			for (size_t ind = 1; ind < amountOfCols; ind++)
 			{
-				valueTypes.push_back(db::DbTypeFactory::GetNewType(loadedTables[tableIndex].GetColType(ind))); //dynamically allocated
+				valueTypes.push_back(
+					PointerWrapper<DbType>(db::DbTypeFactory::GetNewType(loadedTables[tableIndex].GetColType(ind)))); //dynamically allocated
 			}
 
 			Row valuesToGet;
@@ -255,10 +418,6 @@ void ConsoleCommandHandler::InsertFunc()
 			cin.putback('\n');
 			loadedTables[tableIndex].MakeNewRow(valuesToGet);
 
-			for (size_t ind = 0; ind < amountOfCols - 1; ind++)
-			{
-				delete valueTypes[ind];
-			}
 			cout << "db > Table row added successfully!\n";
 		}
 		else
@@ -272,7 +431,7 @@ void ConsoleCommandHandler::InsertFunc()
 	}
 }
 
-void ConsoleCommandHandler::DeleteFunc()
+void ConsoleCommandHandler::DeleteSwitchFunc()
 {
 	cin.ignore();
 
@@ -289,13 +448,12 @@ void ConsoleCommandHandler::DeleteFunc()
 			searchCol.DeSerialize(cin);
 			cin.ignore();
 
-			DbType* valueToSearch = db::DbTypeFactory::GetNewType(
-				loadedTables[tableIndex].GetColType(searchCol.GetValueAsInt()));
+			PointerWrapper<DbType> valueToSearch(db::DbTypeFactory::GetNewType(
+				loadedTables[tableIndex].GetColType(searchCol.GetValueAsInt())));
 			valueToSearch->DeSerialize(cin);
 
-			loadedTables[tableIndex].DeleteCertainRows(searchCol.GetValueAsInt(), valueToSearch);
+			loadedTables[tableIndex].DeleteCertainRows(searchCol.GetValueAsInt(), valueToSearch.operator->());
 
-			delete valueToSearch;
 			cout << "db > Rows were deleted successfully!\n";
 		}
 		else cout << "db > There is no such table!\n";
@@ -306,7 +464,7 @@ void ConsoleCommandHandler::DeleteFunc()
 	}
 }
 
-void ConsoleCommandHandler::UpdateFunc()
+void ConsoleCommandHandler::UpdateSwitchFunc()
 {
 	cin.ignore();
 
@@ -324,7 +482,7 @@ void ConsoleCommandHandler::UpdateFunc()
 			cin.ignore();
 
 			string searchColType = loadedTables[tableIndex].GetColType(colToSearch.GetValueAsInt());
-			DbType* valueToSearch = db::DbTypeFactory::GetNewType(searchColType);
+			PointerWrapper<DbType> valueToSearch(db::DbTypeFactory::GetNewType(searchColType));
 			valueToSearch->DeSerialize(cin);
 			cin.ignore();
 
@@ -333,16 +491,14 @@ void ConsoleCommandHandler::UpdateFunc()
 			cin.ignore();
 
 			string typeToChange = loadedTables[tableIndex].GetColType(colToChange.GetValueAsInt());
-			DbType* valueToChangeWith = db::DbTypeFactory::GetNewType(typeToChange);
+			PointerWrapper<DbType> valueToChangeWith(db::DbTypeFactory::GetNewType(typeToChange));
 
 			valueToChangeWith->DeSerialize(cin);
 			//no need of cin.ignore();
 
-			loadedTables[tableIndex].UpdateCertainRows(colToSearch.GetValueAsInt(), valueToSearch,
-				colToChange.GetValueAsInt(), valueToChangeWith);
+			loadedTables[tableIndex].UpdateCertainRows(colToSearch.GetValueAsInt(), valueToSearch.operator->(),
+				colToChange.GetValueAsInt(), valueToChangeWith.operator->());
 
-			delete valueToSearch;
-			delete valueToChangeWith;
 			cout << "db > Table successfully updated!\n";
 		}
 		else cout << "db > There is no such table!\n";
@@ -353,7 +509,7 @@ void ConsoleCommandHandler::UpdateFunc()
 	}
 }
 
-void ConsoleCommandHandler::AddColumnFunc()
+void ConsoleCommandHandler::AddColumnSwitchFunc()
 {
 	cin.get(); // remove whitespace that >> operator ignores after AddColumn
 
@@ -378,7 +534,7 @@ void ConsoleCommandHandler::AddColumnFunc()
 	}
 }
 
-void ConsoleCommandHandler::DescribeFunc()
+void ConsoleCommandHandler::DescribeTableFunc()
 {
 	cin.ignore();
 	try
@@ -394,7 +550,7 @@ void ConsoleCommandHandler::DescribeFunc()
 	}
 }
 
-void ConsoleCommandHandler::LoadFunc(std::string &input)
+void ConsoleCommandHandler::LoadTableSwitchFunc(std::string &input)
 {
 	cin.ignore();
 	try
@@ -411,7 +567,7 @@ void ConsoleCommandHandler::LoadFunc(std::string &input)
 	}
 }
 
-void ConsoleCommandHandler::PrintPreviewFunc(std::string &input)
+void ConsoleCommandHandler::PrintPreviewSwitchFunc(std::string &input)
 {
 	cin.ignore();
 	try
@@ -437,7 +593,7 @@ void ConsoleCommandHandler::PrintPreviewFunc(std::string &input)
 	}
 }
 
-void ConsoleCommandHandler::SelectFunc()
+void ConsoleCommandHandler::SelectSwitchFunc()
 {
 	cin.ignore();
 	try
@@ -469,13 +625,11 @@ void ConsoleCommandHandler::SelectFunc()
 			else
 			{
 				string columnType = loadedTables[tableInd].GetColType(columnToSearch);
-				DbType* typeToDeserialize = db::DbTypeFactory::GetNewType(columnType);
+				PointerWrapper<DbType> typeToDeserialize(db::DbTypeFactory::GetNewType(columnType));
 				typeToDeserialize->DeSerialize(cin);
 
 				PrintTableInPreviewMode(tableName.GetValueAsString(),
-					loadedTables[tableInd].SelectCertainRows(columnToSearch, typeToDeserialize));
-
-				delete typeToDeserialize;
+					loadedTables[tableInd].SelectCertainRows(columnToSearch, typeToDeserialize.operator->()));
 			}
 		}
 	}
@@ -486,7 +640,7 @@ void ConsoleCommandHandler::SelectFunc()
 	}
 }
 
-void ConsoleCommandHandler::SaveFunc()
+void ConsoleCommandHandler::SaveTableSwitchFunc()
 {
 	cin.ignore();
 	try
@@ -514,14 +668,15 @@ void ConsoleCommandHandler::PrintHelp() const
 		"*** Database types are: Text, Integer, Decimal. Type them without quotes!\n" <<
 		"*** Cells can be null - null is typed NULL in the terminal without quotes.\n"
 		"*** Characters \" and \\ should be escaped in the table names and text(string) cells with backslash \\ !\n" 
-		"*** Id_auto column should not be entered. It is auto generated. Do not change or delete it!\n\n"<<
+		"*** Id_auto column should not be entered. It is auto generated. Do not change or delete it!\n"
+		"*** Agrregate operations are: sum, product, maximum, minimum\n\n"<<
 		"Commands:\n" 
 		"1) Load \"file_name\" - loads a single table from a file\n" 
 		"2) Showtables - prints all the table names currently loaded\n" 
 		"3) Describe \"table_name\" - prints the description of a table in case it is loaded.\n" 
 		"4) Print \"table_name\" - prints the table content in a preview mode.\n" 
 		"5) Save \"table_name\" \"file_name\" - saves the table content in a file.\n"
-		"6) Select column_number \"table_name\" value_to_search - prints rows with the selected value at column column_number.\n"
+		"6) Select column_number \"table_name\" <valueToSearch> - prints rows with the selected value at column column_number.\n"
 		"7) AddColumn \"table_name\" \"column_name\" column_type - adds a new column to the selected table.\n"
 		"8) Update \"table_name\" colToSearch_number <valueToSearch> colToChange_number <updateValue> - updates certain rows of the table.\n"
 		"9) Delete \"table_name\" colToSearch_number <valueToSearch> - deletes certain rows of the table.\n"
@@ -530,7 +685,9 @@ void ConsoleCommandHandler::PrintHelp() const
 		"12) Rename \"old_table_name\" \"new_name\" - renames the table in case the name is available.\n"
 		"13) CreateTable \"table_name\" - creates a table with the entered name if it is available.\n"
 		"14) DeleteTable \"table_name\" - deletes the table with entered name, if it exist.\n"
-		"15) Exit - program exit.\n\n";
+		"15) Count \"table_name\" colToSearch_number <valueToSearch> - counts the rows that contain <valueToSeach> at the entered colToSearch.\n"
+		"16) Aggregate \"table_name\" colToSearch_number <valueToSearch> targetColumn_number <operation> - performs the selected operation on the rows with the valueToSearch.\n"
+		"17) Exit - program exit.\n\n";
 }
 
 void ConsoleCommandHandler::PrintTableDescription(const string & tableName) const
