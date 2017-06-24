@@ -497,8 +497,68 @@ db::Table db::Table::LeftOuterJoin(size_t firstCol, const Table & secondTable, s
 
 db::Table db::Table::RightOuterJoin(size_t firstCol, const Table & secondTable, size_t secondCol) const
 {
-	Table result = secondTable.LeftOuterJoin(secondCol, *this, firstCol);
-	result.SetName("RightOuterJoin: " + this->GetName() + ", " + secondTable.GetName());
+	db::Table result("RightOuterJoin: " + GetName() + ", " + secondTable.GetName());
+
+	size_t firstTableCols = headerCols.size();
+	size_t secondTableCols = secondTable.headerCols.size();
+
+	if (firstCol < 0 || firstCol >= firstTableCols || secondCol < 0 || secondCol >= secondTableCols)
+	{
+		throw OutOfRangeException("Invalid join columns!");
+	}
+
+	for (size_t ind = 0; ind < firstTableCols; ind++)
+	{
+		result.AddNewColumn("FTable:" + headerCols[ind].headerName, headerCols[ind].headerType);
+	}
+
+	for (size_t ind = 0; ind < secondTableCols; ind++)
+	{
+		result.AddNewColumn("STable:" + secondTable.headerCols[ind].headerName, secondTable.headerCols[ind].headerType);
+	}
+
+	size_t firstTableRows = rows.size();
+	size_t secondTableRows = secondTable.rows.size();
+	for (size_t fInd = 0; fInd < secondTableRows; fInd++)
+	{
+		bool hasFoundMatch = false;
+		for (size_t sInd = 0; sInd < firstTableRows; sInd++)
+		{
+			if (secondTable.rows[fInd][secondCol]->AreEqual(rows[sInd][firstCol]))
+			{
+				hasFoundMatch = true;
+
+				Row rowToAdd;
+				for (size_t fCols = 0; fCols < firstTableCols; fCols++)
+				{
+					rowToAdd.AddColumn(rows[sInd][fCols]);
+				}
+
+				for (size_t sCols = 0; sCols < secondTableCols; sCols++)
+				{
+					rowToAdd.AddColumn(secondTable.rows[fInd][sCols]);
+				}
+
+				result.MakeNewRow(rowToAdd);
+			}
+		}
+
+		if (!hasFoundMatch)
+		{
+			Row rowToAdd;
+			for (size_t fCols = 0; fCols < firstTableCols; fCols++)
+			{
+				rowToAdd.AddNullColumn(headerCols[fCols].headerType);
+			}
+
+			for (size_t sCols = 0; sCols < secondTableCols; sCols++)
+			{
+				rowToAdd.AddColumn(secondTable.rows[fInd][sCols]);
+			}
+
+			result.MakeNewRow(rowToAdd);
+		}
+	}
 
 	return result;
 }

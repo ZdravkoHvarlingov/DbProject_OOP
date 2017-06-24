@@ -32,7 +32,7 @@ bool db::Decimal::AreEqual(const DbType * other) const
 {
 	if (other->GetType() != "Decimal")
 	{
-		throw db::InconsistentTypesException("Cannot implicit convert to Decimal");
+		throw db::InconsistentTypesException("Cannot implicit convert to Decimal!");
 	}
 
 	else return (other->CheckIfValueIsNull() && CheckIfValueIsNull()) ||

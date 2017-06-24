@@ -34,7 +34,7 @@ bool db::Text::AreEqual(const DbType * other) const
 {
 	if (other->GetType() != "Text")
 	{
-		throw db::InconsistentTypesException("Can not implicit convert to Text");
+		throw db::InconsistentTypesException("Can not implicit convert to Text!");
 	}
 
 	return (other->CheckIfValueIsNull() && CheckIfValueIsNull()) ||

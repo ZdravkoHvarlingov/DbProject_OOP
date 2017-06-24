@@ -31,7 +31,7 @@ bool db::Integer::AreEqual(const DbType * other) const
 {
 	if (other->GetType() != "Integer")
 	{
-		throw db::InconsistentTypesException("Cannot implicit convert to Integer");
+		throw db::InconsistentTypesException("Cannot implicit convert to Integer!");
 	}
 
 	else return (other->CheckIfValueIsNull() && CheckIfValueIsNull()) ||
