@@ -13,9 +13,7 @@ public:
 
 	void StartListening();
 
-	void RightOuterJoinSwitchFunc();
-
-	void LeftOuterJoinSwitchFunc();
+	void SetColNullAcceptanceSwitchFunc();
 
 	double AggregateSpecificCommand(const string &command, const string &targetColumnType, int tableIndex, const Integer &searchColumn,
 		PointerWrapper<db::DbType> &searchValue, const Integer &targetColumn, bool &isValidCommand);
@@ -34,6 +32,8 @@ public:
 
 private:
 
+	void RightOuterJoinSwitchFunc();
+	void LeftOuterJoinSwitchFunc();
 	void AggregateSwitchFunc();
 	void CountSwitchFunc();
 	void DeleteTableSwitchFunc();

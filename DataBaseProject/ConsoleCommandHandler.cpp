@@ -101,6 +101,10 @@ void ConsoleCommandHandler::StartListening()
 		{
 			AggregateSwitchFunc();
 		}
+		else if (input == "SetColNullAcceptance")
+		{
+			SetColNullAcceptanceSwitchFunc();
+		}
 		else if (input == "Help")
 		{
 			PrintHelp();
@@ -122,6 +126,40 @@ void ConsoleCommandHandler::StartListening()
 	}
 
 	cout << "db > Program exit...\n";
+}
+
+void ConsoleCommandHandler::SetColNullAcceptanceSwitchFunc()
+{
+	cin.ignore();
+
+	try
+	{
+		Text tableName;
+		tableName.DeSerialize(cin);
+		cin.ignore();
+
+		int tableIndex = GetTableIndex(tableName.GetValueAsString());
+		if (tableIndex != -1)
+		{
+			Integer columnToSet;
+			columnToSet.DeSerialize(cin);
+			cin.ignore();
+
+			bool value;
+			cin >> value;
+
+			loadedTables[tableIndex].SetColNullAcceptance(value, columnToSet.GetValueAsInt());
+			cout << "db > Column NULL acceptance successfully set to: " << value << '\n';
+		}
+		else
+		{
+			cout << "db > There is no such table!\n";
+		}
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid command arguments! " << e.what() << '\n';
+	}
 }
 
 void ConsoleCommandHandler::RightOuterJoinSwitchFunc()
@@ -766,7 +804,7 @@ void ConsoleCommandHandler::PrintHelp() const
 		"*** Database types are: Text, Integer, Decimal. Type them without quotes!\n" <<
 		"*** Cells can be null - null is typed NULL in the terminal without quotes.\n"
 		"*** Characters \" and \\ should be escaped in the table names and text(string) cells with backslash \\ !\n" 
-		"*** Id_auto column should not be entered. It is auto generated. Do not change or delete it!\n"
+		"*** Id_auto column should not be entered. It is auto generated. You can NOT change or delete it!\n"
 		"*** Agrregate operations are: sum, product, maximum, minimum\n\n"<<
 		"Commands:\n" 
 		"1) Load \"file_name\" - loads a single table from a file\n" 
@@ -779,13 +817,16 @@ void ConsoleCommandHandler::PrintHelp() const
 		"8) Update \"table_name\" colToSearch_number <valueToSearch> colToChange_number <updateValue> - updates certain rows of the table.\n"
 		"9) Delete \"table_name\" colToSearch_number <valueToSearch> - deletes certain rows of the table.\n"
 		"10) Insert \"table name\" <column 1> … <column n> - insert a row in the table with the entered values.\n"
-		"11) InnerJoin \"first_table\" <column> \"second_table\" <column> - makes a inner join table.\n"
-		"12) Rename \"old_table_name\" \"new_name\" - renames the table in case the name is available.\n"
-		"13) CreateTable \"table_name\" - creates a table with the entered name if it is available.\n"
-		"14) DeleteTable \"table_name\" - deletes the table with entered name, if it exist.\n"
-		"15) Count \"table_name\" colToSearch_number <valueToSearch> - counts the rows that contain <valueToSeach> at the entered colToSearch.\n"
-		"16) Aggregate \"table_name\" colToSearch_number <valueToSearch> targetColumn_number <operation> - performs the selected operation on the rows with the valueToSearch.\n"
-		"17) Exit - program exit.\n\n";
+		"11) InnerJoin \"first_table\" column_number \"second_table\" column_number - makes an inner join table.\n"
+		"12) LeftOuterJoin \"first_table\" column_number \"second_table\" column_number - makes a left outer join table.\n"
+		"13) RightOuterJoin \"first_table\" column_number \"second_table\" column_number - makes a right outer join table.\n"
+		"14) Rename \"old_table_name\" \"new_name\" - renames the table in case the name is available.\n"
+		"15) CreateTable \"table_name\" - creates a table with the entered name if it is available.\n"
+		"16) DeleteTable \"table_name\" - deletes the table with entered name, if it exist.\n"
+		"17) Count \"table_name\" colToSearch_number <valueToSearch> - counts the rows that contain <valueToSeach> at the entered colToSearch.\n"
+		"18) Aggregate \"table_name\" colToSearch_number <valueToSearch> targetColumn_number <operation> - performs the selected operation on the rows with the valueToSearch.\n"
+		"19) SetColNullAcceptance \"table_name\" column_number 0(or 1) - makes NULL an acceptable(or non acceptable: 1 -yes, 0 -no) value for the specific column.\n"
+		"20) Exit - program exit.\n\n";
 }
 
 void ConsoleCommandHandler::PrintTableDescription(const string & tableName) const

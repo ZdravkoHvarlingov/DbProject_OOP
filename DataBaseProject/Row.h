@@ -34,7 +34,6 @@ namespace db
 		const DbType* const &  operator[] (size_t index) const;
 		
 		size_t GetColmSize() const;
-		size_t GetMaxCellValueLength() const;
 
 		void Serialize(ostream& outStr) const;
 		string GetAsString(vector<size_t> setWSizes) const;

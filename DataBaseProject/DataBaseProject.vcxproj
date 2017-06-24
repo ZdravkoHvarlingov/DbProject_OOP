@@ -158,6 +158,7 @@
     <ClInclude Include="Integer.h" />
     <ClInclude Include="NoHeaderRowException.h" />
     <ClInclude Include="NotImplementedException.h" />
+    <ClInclude Include="NullException.h" />
     <ClInclude Include="OutOfRangeException.h" />
     <ClInclude Include="PointerWrapper.h" />
     <ClInclude Include="Row.h" />

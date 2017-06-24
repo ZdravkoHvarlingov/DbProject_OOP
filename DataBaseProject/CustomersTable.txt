@@ -1,6 +1,6 @@
 Customers
 3
-"Id_auto" Integer "Name" Text "Age" Integer 
+"Id_auto" Integer 0 "Name" Text 1 "Age" Integer 1 
 12
 0 "zdravko" 20
 1 "Ivka" 19

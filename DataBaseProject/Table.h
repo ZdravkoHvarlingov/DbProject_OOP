@@ -25,7 +25,6 @@ namespace db
 		const string& GetColType(size_t col) const;
 		size_t GetAmountOfColumns() const;
 		const vector<Row>& GetRows() const;
-		size_t GetMaxCellSize() const;
 		vector<size_t> GetColumnsMaxLengths() const;
 
 		void SetName(string _name);
@@ -46,7 +45,7 @@ namespace db
 		vector<Row> SelectCertainRows(size_t colToSearch, DbType* elementToSearch) const;
 
 		void SetNullCell(size_t row, size_t col);
-		void SetColNullExceptance(bool value, size_t _index);
+		void SetColNullAcceptance(bool value, size_t _index);
 
 		friend ostream& operator << (ostream& outStr, const Table& tableToDisplay);
 		friend istream& operator >> (istream& inStr, Table& tableToInit);
@@ -54,7 +53,6 @@ namespace db
 	private:
 
 		void DeleteRow(size_t rowIndex);
-		void ChangeCell(size_t row, size_t col, DbType* value);
 
 		struct HeaderCol
 		{

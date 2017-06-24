@@ -1,6 +1,7 @@
 #include "Table.h"
 #include "NoHeaderRowException.h"
 #include "InconsistentTypesException.h"
+#include "NullException.h"
 #include "OutOfRangeException.h"
 #include <iostream>
 #include <iomanip>
@@ -10,6 +11,7 @@
 using db::DbTypeFactory;
 using db::NoHeaderRowException;
 using db::OutOfRangeException;
+using db::NullException;
 
 db::Table::Table(string _name)
 	: autoIncrement(0)
@@ -35,11 +37,16 @@ string db::Table::GetDescription() const
 
 	for (size_t ind = 0; ind < len; ind++)
 	{
-		result += "\"" + headerCols[ind].headerName + "\" - " + headerCols[ind].headerType;
-		
+		result += "\"" + headerCols[ind].headerName + "\" - " + headerCols[ind].headerType + ", Accept null: ";
+		if (headerCols[ind].CanBeNull)
+		{
+			result += "YES";
+		}
+		else result += "NO";
+
 		if (ind != len - 1)
 		{
-			result += ", ";
+			result += "; ";
 		}
 	}
 
@@ -76,22 +83,6 @@ size_t db::Table::GetAmountOfColumns() const
 const vector<Row>& db::Table::GetRows() const
 {
 	return rows;
-}
-
-size_t db::Table::GetMaxCellSize() const
-{
-	size_t rowsAmount = rows.size();
-
-	size_t max = 0;
-	for (size_t ind = 0; ind < rowsAmount; ind++)
-	{
-		if (max < rows[ind].GetMaxCellValueLength())
-		{
-			max = rows[ind].GetMaxCellValueLength();
-		}
-	}
-
-	return max;
 }
 
 vector<size_t> db::Table::GetColumnsMaxLengths() const
@@ -133,14 +124,18 @@ void db::Table::MakeNewRow()
 
 	Row rowToAdd;
 	rowToAdd.AddColumn(&autoCol);
-	++autoIncrement;
-
+	
 	size_t len = headerCols.size() - 1;
 	for (size_t ind = 0; ind < len; ind++)
 	{
+		if (headerCols[ind + 1].CanBeNull == false)
+		{
+			throw NullException("Can not make an empty row because NULL is not acceptable!");
+		}
 		rowToAdd.AddNullColumn(headerCols[ind + 1].headerType);
 	}
 
+	++autoIncrement;
 	rows.push_back(rowToAdd);
 }
 
@@ -157,6 +152,10 @@ void db::Table::MakeNewRow(const Row& _rowToAdd)
 		if (rowToEnter[ind]->GetType() != headerCols[ind + 1].headerType)
 		{
 			throw InconsistentTypesException("Can not convert types");
+		}
+		if (headerCols[ind + 1].CanBeNull == false && rowToEnter[ind]->CheckIfValueIsNull())
+		{
+			throw NullException("Can not enter NULL cell, because it is not an acceptable value!");
 		}
 	}
 
@@ -248,9 +247,13 @@ void db::Table::UpdateCertainRows(size_t colToSearch, DbType * elementToSearch, 
 	{
 		throw OutOfRangeException("Search column is out of range!");
 	}
-	if (colToChange >= headerCols.size() || colToChange < 0)
+	if (colToChange >= headerCols.size() || colToChange < 1)
 	{
-		throw OutOfRangeException("Change column is out of range!");
+		throw OutOfRangeException("Change column is out of range or not valid!");
+	}
+	if (headerCols[colToChange].CanBeNull == false && valueToSet->CheckIfValueIsNull())
+	{
+		throw NullException("Can not update with NULL value, because it is not acceptable!");
 	}
 
 	size_t rowsCount = rows.size();
@@ -285,31 +288,51 @@ vector<Row> db::Table::SelectCertainRows(size_t colToSearch, DbType * elementToS
 	return result;
 }
 
-void db::Table::ChangeCell(size_t row, size_t col, DbType * value)
-{
-	//Out of range exception for col?
-	if (value->CheckIfValueIsNull() && headerCols[col].CanBeNull == false)
-	{
-		return; // maybe something smarter
-	}
-
-	rows[row].ChangeColumnValue(col, value); // InconsistentTypesException will be thrown in case of different types along the functions chain
-}
-
 void db::Table::SetNullCell(size_t row, size_t col)
 {
 	if (headerCols[col].CanBeNull)
 	{
 		rows[row][col]->SetNull();
 	}
-	//else throw exception ... TO BE IMPLEMENTED
+	else throw NullException("Can not set the cell to NULL, because it is not an acceptable value!");
 }
 
-void db::Table::SetColNullExceptance(bool value, size_t _index)
+void db::Table::SetColNullAcceptance(bool value, size_t columnInd)
 {
-	//exception to implement: OutOfRangeException
+	if (columnInd < 1 || columnInd >= headerCols.size())
+	{
+		throw OutOfRangeException("Column is not valid!");
+	}
 
-	headerCols[_index].CanBeNull = value;
+	if (!value)
+	{
+		bool hasNullRow = false;
+		size_t index = 0;
+		size_t amountOfRows = rows.size();
+
+		while (index < amountOfRows && !hasNullRow)
+		{
+			if (rows[index][columnInd]->CheckIfValueIsNull())
+			{
+				hasNullRow = true;
+			}
+
+			index++;
+		}
+
+		if (!hasNullRow)
+		{
+			headerCols[columnInd].CanBeNull = value;
+		}
+		else
+		{
+			throw NullException("Can't set null exceptance to false due to a NULL value in a certain row!");
+		}
+	}
+	else
+	{
+		headerCols[columnInd].CanBeNull = value;
+	}
 }
 
 ostream & db::operator<<(ostream & outStr, const Table & tableToDisplay)
@@ -321,7 +344,7 @@ ostream & db::operator<<(ostream & outStr, const Table & tableToDisplay)
 	{
 		Text hdr(tableToDisplay.headerCols[ind].headerName);
 		hdr.Serialize(outStr);
-		outStr << " " << tableToDisplay.headerCols[ind].headerType << " ";
+		outStr << " " << tableToDisplay.headerCols[ind].headerType << " " << tableToDisplay.headerCols[ind].CanBeNull << " ";
 	}
 
 	outStr << '\n' << tableToDisplay.rows.size() << '\n';
@@ -359,12 +382,16 @@ istream & db::operator>>(istream & inStr, Table & tableToInit)
 		columnText.DeSerialize(inStr);
 		inStr >> input;
 		inStr.ignore();
+		bool canBeNull;
+		inStr >> canBeNull;
+		inStr.ignore();
 
 		tableToInit.AddNewColumn(columnText.GetValueAsString(), input);
+		tableToInit.headerCols[ind].CanBeNull = canBeNull;
 		colTypes.push_back(PointerWrapper<DbType>(DbTypeFactory::GetNewType(input)));
 	}
 
-	inStr >> inpNumber;
+	inStr >> inpNumber; //ignores the new line character
 	inStr.ignore();
 
 	for (size_t ind = 0; ind < inpNumber; ind++)

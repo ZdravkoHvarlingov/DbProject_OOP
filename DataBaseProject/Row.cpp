@@ -55,22 +55,6 @@ size_t db::Row::GetColmSize() const
 	return columns.size();
 }
 
-size_t db::Row::GetMaxCellValueLength() const
-{
-	size_t cols = columns.size();
-
-	size_t max = 0;
-	for (size_t ind = 0; ind < cols; ind++)
-	{
-		if (max < columns[ind]->GetValueLength())
-		{
-			max = columns[ind]->GetValueLength();
-		}
-	}
-
-	return max;
-}
-
 void db::Row::Serialize(ostream& outStr) const
 {
 	size_t colSize = columns.size();
