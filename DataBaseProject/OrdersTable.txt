@@ -1,0 +1,10 @@
+Orders
+4
+"Id_auto" Integer "Type" Text "CustomerId" Integer "NothingHere" Decimal 
+6
+0 "Spoon" 1 NULL
+1 "adjaba" 0 NULL
+2 "Ivka e moq we" 0 NULL
+3 "Knife" 9 NULL
+4 "Audi2017" 4 NULL
+5 "GolfIV" 3 NULL

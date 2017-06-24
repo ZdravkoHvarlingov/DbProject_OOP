@@ -33,7 +33,7 @@ namespace db
 		void MakeNewRow(const Row& _rowToAdd);
 		void AddNewColumn(const string& _colName,const string& _colType);  //, bool _canBeNull);
 
-		friend Table InnerJoin(const Table& firstTable, size_t firstCol, const Table& secondTable, size_t secondCol);
+		Table InnerJoin(size_t firstCol, const Table& secondTable, size_t secondCol);
 
 		template <typename ResT>
 		ResT Aggregate(size_t colToSearch, DbType* valueToSearch, size_t colToAgg, AggFun<ResT> function, ResT initValue) const;

@@ -372,7 +372,7 @@ void ConsoleCommandHandler::InnerJoinSwitchFunc()
 
 		if (firstTableIndex != -1 && secondTableIndex != -1)
 		{
-			Table innerJoin = InnerJoin(loadedTables[firstTableIndex], firstCol.GetValueAsInt(),
+			Table innerJoin = loadedTables[firstTableIndex].InnerJoin(firstCol.GetValueAsInt(),
 				loadedTables[secondTableIndex], secondCol.GetValueAsInt());
 
 			int innerJoinIndex = GetTableIndex(innerJoin.GetName());

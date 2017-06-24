@@ -378,11 +378,11 @@ istream & db::operator>>(istream & inStr, Table & tableToInit)
 	return inStr;
 }
 
-db::Table db::InnerJoin(const Table & firstTable, size_t firstCol, const Table & secondTable, size_t secondCol)
+db::Table db::Table::InnerJoin(size_t firstCol, const db::Table & secondTable, size_t secondCol)
 {
-	db::Table result("InnerJoin:" + firstTable.GetName() + "," + secondTable.GetName());
+	db::Table result("InnerJoin: " + GetName() + ", " + secondTable.GetName());
 
-	size_t firstTableCols = firstTable.headerCols.size();
+	size_t firstTableCols = headerCols.size();
 	size_t secondTableCols = secondTable.headerCols.size();
 
 	if (firstCol < 0 || firstCol >= firstTableCols || secondCol < 0 || secondCol >= secondTableCols)
@@ -390,9 +390,9 @@ db::Table db::InnerJoin(const Table & firstTable, size_t firstCol, const Table &
 		throw OutOfRangeException("Invalid inner join columns!");
 	}
 
-	for (size_t ind = 0; ind < firstTableCols; ind++)
+	for (size_t ind = 0; ind <= firstCol; ind++)
 	{
-		result.AddNewColumn("FTable:" + firstTable.headerCols[ind].headerName, firstTable.headerCols[ind].headerType);
+		result.AddNewColumn("FTable:" + headerCols[ind].headerName, headerCols[ind].headerType);
 	}
 
 	for (size_t ind = 0; ind < secondTableCols; ind++)
@@ -400,23 +400,33 @@ db::Table db::InnerJoin(const Table & firstTable, size_t firstCol, const Table &
 		result.AddNewColumn("STable:" + secondTable.headerCols[ind].headerName, secondTable.headerCols[ind].headerType);
 	}
 
-	size_t firstTableRows = firstTable.rows.size();
+	for (size_t ind = firstCol + 1; ind < firstTableCols; ind++)
+	{
+		result.AddNewColumn("FTable:" + headerCols[ind].headerName, headerCols[ind].headerType);
+	}
+
+	size_t firstTableRows = rows.size();
 	size_t secondTableRows = secondTable.rows.size();
 	for (size_t fInd = 0; fInd < firstTableRows; fInd++)
 	{
 		for (size_t sInd = 0; sInd < secondTableRows; sInd++)
 		{
-			if (firstTable.rows[fInd][firstCol]->AreEqual(secondTable.rows[sInd][secondCol]))
+			if (rows[fInd][firstCol]->AreEqual(secondTable.rows[sInd][secondCol]))
 			{
 				Row rowToAdd;
-				for (size_t fCols = 0; fCols < firstTableCols; fCols++)
+				for (size_t fCols = 0; fCols <= firstCol; fCols++)
 				{
-					rowToAdd.AddColumn(firstTable.rows[fInd][fCols]);
+					rowToAdd.AddColumn(rows[fInd][fCols]);
 				}
 
 				for (size_t sCols = 0; sCols < secondTableCols; sCols++)
 				{
 					rowToAdd.AddColumn(secondTable.rows[sInd][sCols]);
+				}
+
+				for (size_t fCols = firstCol + 1; fCols < firstTableCols; fCols++)
+				{
+					rowToAdd.AddColumn(rows[fInd][fCols]);
 				}
 
 				result.MakeNewRow(rowToAdd);

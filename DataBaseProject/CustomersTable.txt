@@ -1,0 +1,16 @@
+Customers
+3
+"Id_auto" Integer "Name" Text "Age" Integer 
+12
+0 "zdravko" 20
+1 "Ivka" 19
+2 "Qsko" 20
+3 "Az sum" 55
+4 "Teodora" 46
+5 "Pencho" 47
+6 "Galina" 26
+7 "Bilqna" 27
+8 "Tatqna" 50
+9 "George" 55
+10 "Kremena" 10
+11 "Dancho" 20
