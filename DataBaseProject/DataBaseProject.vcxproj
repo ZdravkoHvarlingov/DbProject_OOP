@@ -161,6 +161,7 @@
     <ClInclude Include="NullException.h" />
     <ClInclude Include="OutOfRangeException.h" />
     <ClInclude Include="PointerWrapper.h" />
+    <ClInclude Include="RelationshipException.h" />
     <ClInclude Include="Row.h" />
     <ClInclude Include="Table.h" />
     <ClInclude Include="TableUtilities.h" />

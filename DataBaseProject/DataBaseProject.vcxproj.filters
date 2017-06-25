@@ -89,5 +89,8 @@
     <ClInclude Include="NullException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RelationshipException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

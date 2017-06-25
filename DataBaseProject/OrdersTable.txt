@@ -1,6 +1,6 @@
 Orders
 4
-"Id_auto" Integer "Type" Text "CustomerId" Integer "NothingHere" Decimal 
+"Id_auto" Integer 0 "Type" Text 1 "CustomerId" Integer 1 "NothingHere" Decimal 1
 6
 0 "Spoon" 1 NULL
 1 "adjaba" 0 NULL

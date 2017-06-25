@@ -4,10 +4,13 @@
 #include "Row.h"
 #include "InconsistentTypesException.h"
 #include "OutOfRangeException.h"
+#include <map>
+
 
 using db::Row;
 using db::InconsistentTypesException;
 using db::OutOfRangeException;
+using std::map;
 
 template <typename T>
 using AggFun = T(*)(T, T);
@@ -26,6 +29,7 @@ namespace db
 		size_t GetAmountOfColumns() const;
 		const vector<Row>& GetRows() const;
 		vector<size_t> GetColumnsMaxLengths() const;
+		bool DoesSuchIdExist(int id) const;
 
 		void SetName(string _name);
 		void MakeNewRow();
@@ -40,12 +44,15 @@ namespace db
 		ResT Aggregate(size_t colToSearch, DbType* valueToSearch, size_t colToAgg, AggFun<ResT> function, ResT initValue) const;
 
 		size_t CountCertainRows(size_t colToSearch, DbType* elementToSearch) const;
-		void DeleteCertainRows(size_t colToSearch, DbType* elementToSearch);
 		void UpdateCertainRows(size_t colToSearch, DbType* elementToSearch, size_t colToChange, DbType* valueToSet);
 		vector<Row> SelectCertainRows(size_t colToSearch, DbType* elementToSearch) const;
 
 		void SetNullCell(size_t row, size_t col);
 		void SetColNullAcceptance(bool value, size_t _index);
+
+		void SetForeignKey(int columnIndex, Table* foreignKeyTable); //more things to implement
+		void DeleteCertainRows(size_t colToSearch, DbType* elementToSearch);
+		void RepairTableRelatedToThis(int idToDelete, Table* relatedTable); //table which have a foreignKey column to this table
 
 		friend ostream& operator << (ostream& outStr, const Table& tableToDisplay);
 		friend istream& operator >> (istream& inStr, Table& tableToInit);
@@ -53,18 +60,23 @@ namespace db
 	private:
 
 		void DeleteRow(size_t rowIndex);
+		bool BinarySearchId(int id, int startIndex, int endIndex) const;
+		bool DoesAMappedIdExist(map<int, int> relatedRows, int mappedId) const;
 
 		struct HeaderCol
 		{
 			string headerName;
 			string headerType;
-			bool CanBeNull;
+			bool canBeNull;
+			Table* foreignKeyTable;
+			map<int, int> relatedRows;
 		};
 
 		string name;
 		vector<Row> rows;
 		vector<HeaderCol> headerCols;
 		size_t autoIncrement;
+		vector<Table*> connectedTables;
 	};
 
 	template<typename ResT>

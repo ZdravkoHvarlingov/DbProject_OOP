@@ -105,6 +105,42 @@ void ConsoleCommandHandler::StartListening()
 		{
 			SetColNullAcceptanceSwitchFunc();
 		}
+		else if (input == "SetForeignKey")
+		{
+			cin.ignore();
+			try
+			{
+				Text firstTable;
+				firstTable.DeSerialize(cin);
+				cin.ignore();
+				int firstTableIndex = GetTableIndex(firstTable.GetValueAsString());
+
+				if (firstTableIndex != -1)
+				{
+					Integer foreignKeyCol;
+					foreignKeyCol.DeSerialize(cin);
+					cin.ignore();
+
+					Text secondTable;
+					secondTable.DeSerialize(cin);
+					int secondTableIndex = GetTableIndex(secondTable.GetValueAsString());
+					if (secondTableIndex != -1)
+					{
+						loadedTables[firstTableIndex].SetForeignKey(foreignKeyCol.GetValueAsInt(), &loadedTables[secondTableIndex]);
+						cout << "db > Relationship set successfully!\n";
+					}
+					else
+					{
+						cout << "db > The second table is not valid!\n";
+					}
+				}
+				else cout << "db > The first table is not valid!\n";
+			}
+			catch (const std::exception& e)
+			{
+				cout << "Invalid command arguments! " << e.what() << '\n';
+			}
+		}
 		else if (input == "Help")
 		{
 			PrintHelp();
@@ -826,7 +862,8 @@ void ConsoleCommandHandler::PrintHelp() const
 		"17) Count \"table_name\" colToSearch_number <valueToSearch> - counts the rows that contain <valueToSeach> at the entered colToSearch.\n"
 		"18) Aggregate \"table_name\" colToSearch_number <valueToSearch> targetColumn_number <operation> - performs the selected operation on the rows with the valueToSearch.\n"
 		"19) SetColNullAcceptance \"table_name\" column_number 0(or 1) - makes NULL an acceptable(or non acceptable: 1 -yes, 0 -no) value for the specific column.\n"
-		"20) Exit - program exit.\n\n";
+		"20) SetForeignKey \"table_name\" column_number \"foreignKeyTable_name\" - makes a MANY to ONE relationship between the tables.\n"
+		"21) Exit - program exit.\n\n";
 }
 
 void ConsoleCommandHandler::PrintTableDescription(const string & tableName) const

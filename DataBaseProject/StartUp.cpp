@@ -12,6 +12,7 @@
 #include <limits>
 #include <fstream>
 #include <iomanip>
+#include <map>
 
 using std::cout;
 using db::Text;

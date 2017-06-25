@@ -7,11 +7,15 @@
 #include <iomanip>
 #include "DbTypeFactory.h"
 #include "PointerWrapper.h"
+#include "RelationshipException.h"
+#include "Integer.h"
 
 using db::DbTypeFactory;
 using db::NoHeaderRowException;
 using db::OutOfRangeException;
 using db::NullException;
+using db::RelationshipException;
+using db::Integer;
 
 db::Table::Table(string _name)
 	: autoIncrement(0)
@@ -38,7 +42,7 @@ string db::Table::GetDescription() const
 	for (size_t ind = 0; ind < len; ind++)
 	{
 		result += "\"" + headerCols[ind].headerName + "\" - " + headerCols[ind].headerType + ", Accept null: ";
-		if (headerCols[ind].CanBeNull)
+		if (headerCols[ind].canBeNull)
 		{
 			result += "YES";
 		}
@@ -107,6 +111,13 @@ vector<size_t> db::Table::GetColumnsMaxLengths() const
 	return result;
 }
 
+bool db::Table::DoesSuchIdExist(int id) const
+{
+	bool result = BinarySearchId(id, 0, rows.size() - 1);
+
+	return result;
+}
+
 void db::Table::SetName(string _name)
 {
 	name = _name;
@@ -128,7 +139,7 @@ void db::Table::MakeNewRow()
 	size_t len = headerCols.size() - 1;
 	for (size_t ind = 0; ind < len; ind++)
 	{
-		if (headerCols[ind + 1].CanBeNull == false)
+		if (headerCols[ind + 1].canBeNull == false)
 		{
 			throw NullException("Can not make an empty row because NULL is not acceptable!");
 		}
@@ -153,9 +164,14 @@ void db::Table::MakeNewRow(const Row& _rowToAdd)
 		{
 			throw InconsistentTypesException("Can not convert types");
 		}
-		if (headerCols[ind + 1].CanBeNull == false && rowToEnter[ind]->CheckIfValueIsNull())
+		if (headerCols[ind + 1].canBeNull == false && rowToEnter[ind]->CheckIfValueIsNull())
 		{
 			throw NullException("Can not enter NULL cell, because it is not an acceptable value!");
+		}
+		if (headerCols[ind + 1].foreignKeyTable != nullptr &&
+			headerCols[ind + 1].foreignKeyTable->DoesSuchIdExist(rowToEnter[ind]->GetValueAsInt()) == false)
+		{
+			throw RelationshipException("There is no such Id in the foreignKey table that you try to enter!");
 		}
 	}
 
@@ -173,7 +189,8 @@ void db::Table::AddNewColumn(const string& _colName, const  string& _colType)  /
 	HeaderCol headerColToAdd = {
 		_colName,
 		_colType,
-		true
+		true,
+		nullptr
 	};
 
 	headerCols.push_back(headerColToAdd);
@@ -187,7 +204,53 @@ void db::Table::AddNewColumn(const string& _colName, const  string& _colType)  /
 
 void db::Table::DeleteRow(size_t rowIndex)
 {
+	int idToDelete = rows[rowIndex][0]->GetValueAsInt();
+	size_t amountOfCols = headerCols.size();
+
+	for (size_t ind = 0; ind < amountOfCols; ind++)
+	{
+		if (headerCols[ind].foreignKeyTable != nullptr)
+		{
+			map<int, int>::iterator relatedRowToDel = headerCols[ind].relatedRows.find(idToDelete);
+			if (relatedRowToDel != headerCols[ind].relatedRows.end())
+			{
+				headerCols[ind].relatedRows.erase(relatedRowToDel);
+			}
+		}
+	}
 	rows.erase(rows.begin() + rowIndex);
+}
+
+bool db::Table::BinarySearchId(int id, int startIndex, int endIndex) const
+{
+	if (startIndex > endIndex)
+	{
+		return false;
+	}
+
+	int middle = (startIndex + endIndex) / 2;
+	if (rows[middle][0]->GetValueAsInt() == id)
+	{
+		return true;
+	}
+
+	if (rows[middle][0]->GetValueAsInt() > id)
+	{
+		return BinarySearchId(id, startIndex, middle - 1);
+	}
+	else return BinarySearchId(id, middle + 1, endIndex);
+}
+
+bool db::Table::DoesAMappedIdExist(map<int, int> relatedRows, int mappedId) const
+{
+	map<int, int>::iterator it;
+	for (it = relatedRows.begin(); it != relatedRows.end(); ++it)
+	{
+		if (it->second == mappedId)
+				return true;
+	}
+
+	return false;
 }
 
 size_t db::Table::CountCertainRows(size_t colToSearch, DbType * elementToSearch) const
@@ -231,8 +294,15 @@ void db::Table::DeleteCertainRows(size_t colToSearch, DbType * elementToSearch)
 	}
 
 	size_t amountOfIndexes = indexesToDelete.size();
+	size_t amountOfConTables = connectedTables.size();
+	
 	for (size_t ind = 0; ind < amountOfIndexes; ind++)
 	{
+		for (size_t conInd = 0; conInd < amountOfConTables; conInd++)
+		{
+			RepairTableRelatedToThis(rows[ind][0]->GetValueAsInt(), connectedTables[conInd]);
+		}
+
 		DeleteRow(indexesToDelete[ind]);
 		for (size_t innerInd = ind + 1; innerInd < amountOfIndexes; innerInd++)
 		{
@@ -240,6 +310,32 @@ void db::Table::DeleteCertainRows(size_t colToSearch, DbType * elementToSearch)
 		}
 	}
 }
+
+void db::Table::RepairTableRelatedToThis(int idToDelete, Table * relatedTable)
+{
+	size_t amountOfColumns = relatedTable->headerCols.size();
+
+	for (size_t ind = 1; ind < amountOfColumns; ind++)
+	{
+		if (relatedTable->headerCols[ind].foreignKeyTable == this)
+		{
+			if (DoesAMappedIdExist(relatedTable->headerCols[ind].relatedRows, idToDelete))
+			{
+				if (relatedTable->headerCols[ind].canBeNull == false)
+				{
+					string msg = "Can NOT delete line with ID: " + std::to_string(idToDelete) + " from table: " + this->GetName() +
+						" because it is connected to table: " + relatedTable->GetName() + "! Deletion is aborted.";
+					throw RelationshipException(msg);
+				}
+				else
+				{					
+					relatedTable->UpdateCertainRows(ind, &Integer(idToDelete), ind, &Integer());
+				}
+			}			
+		}
+	}
+}
+
 
 void db::Table::UpdateCertainRows(size_t colToSearch, DbType * elementToSearch, size_t colToChange, DbType * valueToSet)
 {
@@ -251,9 +347,14 @@ void db::Table::UpdateCertainRows(size_t colToSearch, DbType * elementToSearch, 
 	{
 		throw OutOfRangeException("Change column is out of range or not valid!");
 	}
-	if (headerCols[colToChange].CanBeNull == false && valueToSet->CheckIfValueIsNull())
+	if (headerCols[colToChange].canBeNull == false && valueToSet->CheckIfValueIsNull())
 	{
 		throw NullException("Can not update with NULL value, because it is not acceptable!");
+	}
+	if (valueToSet->CheckIfValueIsNull() == false && headerCols[colToChange].foreignKeyTable != nullptr &&
+		headerCols[colToChange].foreignKeyTable->DoesSuchIdExist(valueToSet->GetValueAsInt()) == false)
+	{
+		throw RelationshipException("Can NOT update with that Id because it does NOT exist in the foreignKey table!");
 	}
 
 	size_t rowsCount = rows.size();
@@ -263,6 +364,19 @@ void db::Table::UpdateCertainRows(size_t colToSearch, DbType * elementToSearch, 
 		if (rows[ind][colToSearch]->AreEqual(elementToSearch))
 		{
 			rows[ind][colToChange]->CopyValueFrom(valueToSet);
+			if (headerCols[colToChange].foreignKeyTable != nullptr)
+			{
+				int idToUpdate = rows[ind][0]->GetValueAsInt();
+				map<int, int>::iterator it = headerCols[colToChange].relatedRows.find(idToUpdate);
+				if (valueToSet->CheckIfValueIsNull() && it != headerCols[colToChange].relatedRows.end())
+				{
+					headerCols[colToChange].relatedRows.erase(it);
+				}
+				else if(valueToSet->CheckIfValueIsNull() == false)
+				{
+					headerCols[colToChange].relatedRows[idToUpdate] = valueToSet->GetValueAsInt();
+				}
+			}
 		}
 	}
 }
@@ -290,7 +404,7 @@ vector<Row> db::Table::SelectCertainRows(size_t colToSearch, DbType * elementToS
 
 void db::Table::SetNullCell(size_t row, size_t col)
 {
-	if (headerCols[col].CanBeNull)
+	if (headerCols[col].canBeNull)
 	{
 		rows[row][col]->SetNull();
 	}
@@ -322,7 +436,7 @@ void db::Table::SetColNullAcceptance(bool value, size_t columnInd)
 
 		if (!hasNullRow)
 		{
-			headerCols[columnInd].CanBeNull = value;
+			headerCols[columnInd].canBeNull = value;
 		}
 		else
 		{
@@ -331,8 +445,41 @@ void db::Table::SetColNullAcceptance(bool value, size_t columnInd)
 	}
 	else
 	{
-		headerCols[columnInd].CanBeNull = value;
+		headerCols[columnInd].canBeNull = value;
 	}
+}
+
+void db::Table::SetForeignKey(int columnIndex, Table * foreignKeyTable)
+{
+	if (columnIndex < 1 || columnIndex >= headerCols.size())
+	{
+		throw OutOfRangeException("The column is not valid for a foreign key!");
+	}
+	if (headerCols[columnIndex].headerType != "Integer")
+	{
+		throw RelationshipException("The column is not of type Integer so it can NOT be a foreign key!");
+	}
+
+	size_t rowsAmount = rows.size();
+
+	for (size_t ind = 0; ind < rowsAmount; ind++)
+	{
+		if (rows[ind][columnIndex]->CheckIfValueIsNull() == false &&
+			!foreignKeyTable->DoesSuchIdExist(rows[ind][columnIndex]->GetValueAsInt()))
+		{
+			headerCols[columnIndex].relatedRows.clear();
+
+			throw RelationshipException(
+				"You can NOT make that column a foreign key, because there are Id-s that does not exist in the foreignKey table!");
+		}
+		else if(rows[ind][columnIndex]->CheckIfValueIsNull() == false)
+		{
+			headerCols[columnIndex].relatedRows[rows[ind][0]->GetValueAsInt()] = rows[ind][columnIndex]->GetValueAsInt();
+		}
+	}
+
+	headerCols[columnIndex].foreignKeyTable = foreignKeyTable;
+	foreignKeyTable->connectedTables.push_back(this);
 }
 
 ostream & db::operator<<(ostream & outStr, const Table & tableToDisplay)
@@ -344,7 +491,7 @@ ostream & db::operator<<(ostream & outStr, const Table & tableToDisplay)
 	{
 		Text hdr(tableToDisplay.headerCols[ind].headerName);
 		hdr.Serialize(outStr);
-		outStr << " " << tableToDisplay.headerCols[ind].headerType << " " << tableToDisplay.headerCols[ind].CanBeNull << " ";
+		outStr << " " << tableToDisplay.headerCols[ind].headerType << " " << tableToDisplay.headerCols[ind].canBeNull << " ";
 	}
 
 	outStr << '\n' << tableToDisplay.rows.size() << '\n';
@@ -387,7 +534,7 @@ istream & db::operator>>(istream & inStr, Table & tableToInit)
 		inStr.ignore();
 
 		tableToInit.AddNewColumn(columnText.GetValueAsString(), input);
-		tableToInit.headerCols[ind].CanBeNull = canBeNull;
+		tableToInit.headerCols[ind].canBeNull = canBeNull;
 		colTypes.push_back(PointerWrapper<DbType>(DbTypeFactory::GetNewType(input)));
 	}
 
