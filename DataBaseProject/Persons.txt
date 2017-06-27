@@ -1,0 +1,12 @@
+Persons
+3
+"Id_auto" Integer 0 "Name" Text 1 "ParentId" Integer 1 
+8
+0 "Zdravko" 1
+1 "Ivka" 2
+2 "Naiden" 3
+3 "Qsen" 4
+4 "Ivan" NULL
+5 "MAGITO" 4
+6 "EdnoIme" 4
+7 "Kiro" 4

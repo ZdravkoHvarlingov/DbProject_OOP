@@ -10,15 +10,25 @@ using std::vector;
 class ConsoleCommandHandler
 {
 public:
-
+	static ConsoleCommandHandler& GetInstance();
 	void StartListening();
+	
+	ConsoleCommandHandler(const ConsoleCommandHandler&) = delete;
+	ConsoleCommandHandler& operator=(const ConsoleCommandHandler&) = delete;
+	~ConsoleCommandHandler();
 
-	void SetColNullAcceptanceSwitchFunc();
+private:
 
+	ConsoleCommandHandler() {}
+
+	void SerializeRelationships(const char* fileName) const;
+	void LoadRelationships(const char* fileName);
 	double AggregateSpecificCommand(const string &command, const string &targetColumnType, int tableIndex, const Integer &searchColumn,
-		PointerWrapper<db::DbType> &searchValue, const Integer &targetColumn, bool &isValidCommand);
+		PointerWrapper<db::DbType> &searchValue, const Integer &targetColumn, bool &isValidCommand) const;
 
 	void PrintHelp() const;
+	void PrintRelationshipSystem() const;
+
 	void PrintTableDescription(const string& tableName) const;
 	void PrintTableInPreviewMode(const string& tableName, const vector<Row>& tableRows) const;
 	void PrintSpecificRows(const vector<Row>& rows, size_t startingIndex, size_t amount,
@@ -30,12 +40,17 @@ public:
 	void PrintTables() const;
 	int GetTableIndex(const string& tableName) const;
 
-private:
-
+	void GetRandomRowIdSwitchFunc() const;
+	void LoadRelationshipsSwitchFunc();
+	void SaveRelationshipsSwitchFunc();
+	void MakeManyToManyTableSwitchFunc();
+	void RemoveForeignKeySwitchFunc();
+	void SetForeignKeySwitchFunc();
+	void SetColNullAcceptanceSwitchFunc();
 	void RightOuterJoinSwitchFunc();
 	void LeftOuterJoinSwitchFunc();
-	void AggregateSwitchFunc();
-	void CountSwitchFunc();
+	void AggregateSwitchFunc() const;
+	void CountSwitchFunc() const;
 	void DeleteTableSwitchFunc();
 	void CreateTableSwitchFunc();
 	void RenameTableSwitchFunc();
@@ -45,12 +60,12 @@ private:
 	void UpdateSwitchFunc();
 	void AddColumnSwitchFunc();
 	void SaveTableSwitchFunc();
-	void DescribeTableFunc();
+	void DescribeTableFunc() const;
 	void LoadTableSwitchFunc(std::string &input);
-	void PrintPreviewSwitchFunc(std::string &input);
-	void SelectSwitchFunc();
+	void PrintPreviewSwitchFunc(std::string &input) const;
+	void SelectSwitchFunc() const;
 
-	vector<Table> loadedTables;
+	vector<Table*> loadedTables;
 };
 
 #endif // !CONSOLE_COMMAND_HANDLER

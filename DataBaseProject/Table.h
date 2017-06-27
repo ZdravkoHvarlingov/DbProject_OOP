@@ -22,7 +22,7 @@ namespace db
 	public:
 
 		Table(string _name = "default");
-		string GetName() const;
+		const string& GetName() const;
 		string GetDescription() const;
 		vector<string> GetColHeaders() const;
 		const string& GetColType(size_t col) const;
@@ -30,6 +30,10 @@ namespace db
 		const vector<Row>& GetRows() const;
 		vector<size_t> GetColumnsMaxLengths() const;
 		bool DoesSuchIdExist(int id) const;
+		string GetRelationShipConnectionsAsString() const;
+		string SerializeRelationships(std::ostream& outStr) const;
+		size_t GetAmountOfForeignKeys() const;
+		size_t GetAmountOfConnectedTables() const;
 
 		void SetName(string _name);
 		void MakeNewRow();
@@ -50,9 +54,12 @@ namespace db
 		void SetNullCell(size_t row, size_t col);
 		void SetColNullAcceptance(bool value, size_t _index);
 
-		void SetForeignKey(int columnIndex, Table* foreignKeyTable); //more things to implement
+		void SetForeignKey(int columnIndex, Table* foreignKeyTable);
+		void RemoveForeignKey(int columnIndex);
 		void DeleteCertainRows(size_t colToSearch, DbType* elementToSearch);
 		void RepairTableRelatedToThis(int idToDelete, Table* relatedTable); //table which have a foreignKey column to this table
+
+		int GetRandomId() const;
 
 		friend ostream& operator << (ostream& outStr, const Table& tableToDisplay);
 		friend istream& operator >> (istream& inStr, Table& tableToInit);

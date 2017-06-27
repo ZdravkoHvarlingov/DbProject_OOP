@@ -9,6 +9,8 @@
 #include "PointerWrapper.h"
 #include "RelationshipException.h"
 #include "Integer.h"
+#include <ctime>
+#include <cstdlib>
 
 using db::DbTypeFactory;
 using db::NoHeaderRowException;
@@ -29,7 +31,7 @@ db::Table::Table(string _name)
 	SetName(_name);
 }
 
-string db::Table::GetName() const
+const string& db::Table::GetName() const
 {
 	return name;
 }
@@ -118,6 +120,65 @@ bool db::Table::DoesSuchIdExist(int id) const
 	return result;
 }
 
+string db::Table::GetRelationShipConnectionsAsString() const
+{
+	string result = "";
+	size_t amountOfCols = headerCols.size();
+
+	for (size_t ind = 1; ind < amountOfCols; ind++)
+	{
+		if (headerCols[ind].foreignKeyTable != nullptr)
+		{
+			result += "\"" + this->GetName() + "\", foreignKey col: " + std::to_string(ind) + ", \"" +
+				headerCols[ind].foreignKeyTable->GetName() + "\" -> MANY to ONE\n";
+		}
+	}
+
+	return result;
+}
+
+string db::Table::SerializeRelationships(std::ostream& outStr) const
+{
+	string result = "";
+	size_t amountOfCols = headerCols.size();
+
+	for (size_t ind = 1; ind < amountOfCols; ind++)
+	{
+		if (headerCols[ind].foreignKeyTable != nullptr)
+		{		
+			Text tableName(GetName());
+			tableName.Serialize(outStr);
+			outStr << " " << ind << " ";
+			tableName.SetStringValue(headerCols[ind].foreignKeyTable->GetName());
+			tableName.Serialize(outStr);
+			outStr << '\n';
+		}
+	}
+
+	return result;
+}
+
+size_t db::Table::GetAmountOfForeignKeys() const
+{
+	size_t amountOfCols = headerCols.size();
+	size_t foreignKeysCounter = 0;
+
+	for (size_t ind = 1; ind < amountOfCols; ind++)
+	{
+		if (headerCols[ind].foreignKeyTable != nullptr)
+		{
+			++foreignKeysCounter;
+		}
+	}
+
+	return foreignKeysCounter;
+}
+
+size_t db::Table::GetAmountOfConnectedTables() const
+{
+	return connectedTables.size();
+}
+
 void db::Table::SetName(string _name)
 {
 	name = _name;
@@ -168,7 +229,7 @@ void db::Table::MakeNewRow(const Row& _rowToAdd)
 		{
 			throw NullException("Can not enter NULL cell, because it is not an acceptable value!");
 		}
-		if (headerCols[ind + 1].foreignKeyTable != nullptr &&
+		if (headerCols[ind + 1].foreignKeyTable != nullptr && rowToEnter[ind]->CheckIfValueIsNull() == false &&
 			headerCols[ind + 1].foreignKeyTable->DoesSuchIdExist(rowToEnter[ind]->GetValueAsInt()) == false)
 		{
 			throw RelationshipException("There is no such Id in the foreignKey table that you try to enter!");
@@ -300,7 +361,7 @@ void db::Table::DeleteCertainRows(size_t colToSearch, DbType * elementToSearch)
 	{
 		for (size_t conInd = 0; conInd < amountOfConTables; conInd++)
 		{
-			RepairTableRelatedToThis(rows[ind][0]->GetValueAsInt(), connectedTables[conInd]);
+			RepairTableRelatedToThis(rows[indexesToDelete[ind]][0]->GetValueAsInt(), connectedTables[conInd]);
 		}
 
 		DeleteRow(indexesToDelete[ind]);
@@ -334,6 +395,24 @@ void db::Table::RepairTableRelatedToThis(int idToDelete, Table * relatedTable)
 			}			
 		}
 	}
+}
+
+int db::Table::GetRandomId() const
+{
+	if (rows.size() == 0)
+	{
+		return -1;
+	}
+
+	int maxId = rows[rows.size() - 1][0]->GetValueAsInt();
+	srand(time(NULL));
+	int randomId = -1;
+	while (!DoesSuchIdExist(randomId))
+	{
+		randomId = rand() % (maxId + 1);
+	}
+
+	return randomId;
 }
 
 
@@ -480,6 +559,39 @@ void db::Table::SetForeignKey(int columnIndex, Table * foreignKeyTable)
 
 	headerCols[columnIndex].foreignKeyTable = foreignKeyTable;
 	foreignKeyTable->connectedTables.push_back(this);
+}
+
+void db::Table::RemoveForeignKey(int columnIndex)
+{
+	if (columnIndex < 0 && columnIndex >= headerCols.size())
+	{
+		OutOfRangeException("Column is out of range!");
+	}
+	if (columnIndex == 0 && headerCols[columnIndex].headerType != "Integer")
+	{
+		throw RelationshipException("This is not a correct column! It can NOT be a foreign key.");
+	}
+
+	if (headerCols[columnIndex].foreignKeyTable != nullptr)
+	{
+		bool isFound = false;
+		int index = 0;
+		size_t amountOfRelatedTables = headerCols[columnIndex].foreignKeyTable->connectedTables.size();
+		while (index < amountOfRelatedTables && !isFound)
+		{
+			if (headerCols[columnIndex].foreignKeyTable->connectedTables[index] == this)
+			{
+				headerCols[columnIndex].foreignKeyTable->connectedTables.erase(
+					headerCols[columnIndex].foreignKeyTable->connectedTables.begin() + index);
+				isFound = true;
+			}
+
+			++index;
+		}
+
+		headerCols[columnIndex].foreignKeyTable = nullptr;
+		headerCols[columnIndex].relatedRows.clear();
+	}
 }
 
 ostream & db::operator<<(ostream & outStr, const Table & tableToDisplay)

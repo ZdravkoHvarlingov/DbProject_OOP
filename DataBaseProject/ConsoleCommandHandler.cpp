@@ -20,6 +20,13 @@ using std::ofstream;
 using std::string;
 using db::Text;
 
+ConsoleCommandHandler & ConsoleCommandHandler::GetInstance()
+{
+	static ConsoleCommandHandler instance;
+
+	return instance;
+}
+
 void ConsoleCommandHandler::StartListening()
 {
 	cout << "db > Welcome to database system!\ndb > For any help type \"Help\"\n\ndb > ";
@@ -107,39 +114,31 @@ void ConsoleCommandHandler::StartListening()
 		}
 		else if (input == "SetForeignKey")
 		{
-			cin.ignore();
-			try
-			{
-				Text firstTable;
-				firstTable.DeSerialize(cin);
-				cin.ignore();
-				int firstTableIndex = GetTableIndex(firstTable.GetValueAsString());
-
-				if (firstTableIndex != -1)
-				{
-					Integer foreignKeyCol;
-					foreignKeyCol.DeSerialize(cin);
-					cin.ignore();
-
-					Text secondTable;
-					secondTable.DeSerialize(cin);
-					int secondTableIndex = GetTableIndex(secondTable.GetValueAsString());
-					if (secondTableIndex != -1)
-					{
-						loadedTables[firstTableIndex].SetForeignKey(foreignKeyCol.GetValueAsInt(), &loadedTables[secondTableIndex]);
-						cout << "db > Relationship set successfully!\n";
-					}
-					else
-					{
-						cout << "db > The second table is not valid!\n";
-					}
-				}
-				else cout << "db > The first table is not valid!\n";
-			}
-			catch (const std::exception& e)
-			{
-				cout << "Invalid command arguments! " << e.what() << '\n';
-			}
+			SetForeignKeySwitchFunc();
+		}
+		else if (input == "RemoveForeignKey")
+		{
+			RemoveForeignKeySwitchFunc();
+		}
+		else if (input == "MakeManyToManyTable")
+		{
+			MakeManyToManyTableSwitchFunc();
+		}
+		else if (input == "ShowRelationships")
+		{
+			PrintRelationshipSystem();
+		}
+		else if (input == "SaveRelationships")
+		{
+			SaveRelationshipsSwitchFunc();
+		}
+		else if (input == "LoadRelationships")
+		{
+			LoadRelationshipsSwitchFunc();
+		}
+		else if (input == "GetRandomRowId")
+		{
+			GetRandomRowIdSwitchFunc();
 		}
 		else if (input == "Help")
 		{
@@ -164,6 +163,178 @@ void ConsoleCommandHandler::StartListening()
 	cout << "db > Program exit...\n";
 }
 
+void ConsoleCommandHandler::GetRandomRowIdSwitchFunc() const
+{
+	cin.ignore();
+
+	try
+	{
+		Text tableName;
+		tableName.DeSerialize(cin);
+
+		int tableIndex = GetTableIndex(tableName.GetValueAsString());
+		if (tableIndex != -1)
+		{
+			int randomId = loadedTables[tableIndex]->GetRandomId();
+			if (randomId == -1)
+			{
+				cout << "db > There are no table rows!\n";
+			}
+			else cout << "db > The random id is: " << randomId << ".\n";
+		}
+	}
+	catch (const std::exception& e)
+	{
+		cout << "Invalid command arguments! " << e.what() << '\n';
+	}
+}
+
+void ConsoleCommandHandler::LoadRelationshipsSwitchFunc()
+{
+	cin.ignore();
+
+	try
+	{
+		Text inputText;
+		inputText.DeSerialize(cin);
+		string fileName = inputText.GetValueAsString();
+
+		LoadRelationships(fileName.c_str());
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid command arguments! " << e.what() << '\n';
+	}
+}
+
+void ConsoleCommandHandler::SaveRelationshipsSwitchFunc()
+{
+	cin.ignore();
+
+	try
+	{
+		Text inputText;
+		inputText.DeSerialize(cin);
+		string fileName = inputText.GetValueAsString();
+
+		SerializeRelationships(fileName.c_str());
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid command arguments! " << e.what() << '\n';
+	}
+}
+
+void ConsoleCommandHandler::MakeManyToManyTableSwitchFunc()
+{
+	cin.ignore();
+
+	try
+	{
+		Text firstTableName;
+		firstTableName.DeSerialize(cin);
+		cin.ignore();
+		int firstTableIndex = GetTableIndex(firstTableName.GetValueAsString());
+
+		if (firstTableIndex != -1)
+		{
+			Text secondTableName;
+			secondTableName.DeSerialize(cin);
+			int secondTableIndex = GetTableIndex(secondTableName.GetValueAsString());
+
+			if (secondTableIndex != -1)
+			{
+				Table* manyToManyTable = new Table("ManyToMany: " + loadedTables[firstTableIndex]->GetName() +
+					", " + loadedTables[secondTableIndex]->GetName());
+				manyToManyTable->AddNewColumn(loadedTables[firstTableIndex]->GetName() + "Id", "Integer");
+				manyToManyTable->AddNewColumn(loadedTables[secondTableIndex]->GetName() + "Id", "Integer");
+				loadedTables.push_back(manyToManyTable);
+				loadedTables[loadedTables.size() - 1]->SetColNullAcceptance(false, 1);
+				loadedTables[loadedTables.size() - 1]->SetColNullAcceptance(false, 2);
+				loadedTables[loadedTables.size() - 1]->SetForeignKey(1, loadedTables[firstTableIndex]);
+				loadedTables[loadedTables.size() - 1]->SetForeignKey(2, loadedTables[secondTableIndex]);
+				cout << "db > ManyToMany table was created with name: \"" << manyToManyTable->GetName() << "\".\n";
+			}
+			else
+			{
+				cout << "db > The second table is not valid!\n";
+			}
+		}
+		else
+		{
+			cout << "db > The first table is not valid!\n";
+		}
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid command arguments! " << e.what() << '\n';
+	}
+}
+
+void ConsoleCommandHandler::RemoveForeignKeySwitchFunc()
+{
+	cin.ignore();
+
+	try
+	{
+		Text tableName;
+		tableName.DeSerialize(cin);
+		cin.ignore();
+
+		int tableIndex = GetTableIndex(tableName.GetValueAsString());
+		if (tableIndex != -1)
+		{
+			Integer column;
+			column.DeSerialize(cin);
+
+			loadedTables[tableIndex]->RemoveForeignKey(column.GetValueAsInt());
+			cout << "db > ForeignKey removed successfully!\n";
+		}
+		else cout << "db > There is no such table!\n";
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid command arguments! " << e.what() << '\n';
+	}
+}
+
+void ConsoleCommandHandler::SetForeignKeySwitchFunc()
+{
+	cin.ignore();
+	try
+	{
+		Text firstTable;
+		firstTable.DeSerialize(cin);
+		cin.ignore();
+		int firstTableIndex = GetTableIndex(firstTable.GetValueAsString());
+
+		if (firstTableIndex != -1)
+		{
+			Integer foreignKeyCol;
+			foreignKeyCol.DeSerialize(cin);
+			cin.ignore();
+
+			Text secondTable;
+			secondTable.DeSerialize(cin);
+			int secondTableIndex = GetTableIndex(secondTable.GetValueAsString());
+			if (secondTableIndex != -1)
+			{
+				loadedTables[firstTableIndex]->SetForeignKey(foreignKeyCol.GetValueAsInt(), loadedTables[secondTableIndex]);
+				cout << "db > Relationship set successfully!\n";
+			}
+			else
+			{
+				cout << "db > The second table is not valid!\n";
+			}
+		}
+		else cout << "db > The first table is not valid!\n";
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid command arguments! " << e.what() << '\n';
+	}
+}
+
 void ConsoleCommandHandler::SetColNullAcceptanceSwitchFunc()
 {
 	cin.ignore();
@@ -184,7 +355,7 @@ void ConsoleCommandHandler::SetColNullAcceptanceSwitchFunc()
 			bool value;
 			cin >> value;
 
-			loadedTables[tableIndex].SetColNullAcceptance(value, columnToSet.GetValueAsInt());
+			loadedTables[tableIndex]->SetColNullAcceptance(value, columnToSet.GetValueAsInt());
 			cout << "db > Column NULL acceptance successfully set to: " << value << '\n';
 		}
 		else
@@ -224,14 +395,15 @@ void ConsoleCommandHandler::RightOuterJoinSwitchFunc()
 
 		if (firstTableIndex != -1 && secondTableIndex != -1)
 		{
-			Table rightOuterJoin = loadedTables[firstTableIndex].RightOuterJoin(firstCol.GetValueAsInt(),
-				loadedTables[secondTableIndex], secondCol.GetValueAsInt());
+			Table* rightOuterJoin = new Table();
+			*rightOuterJoin = loadedTables[firstTableIndex]->RightOuterJoin(firstCol.GetValueAsInt(),
+				*(loadedTables[secondTableIndex]), secondCol.GetValueAsInt());
 
-			int innerJoinIndex = GetTableIndex(rightOuterJoin.GetName());
+			int innerJoinIndex = GetTableIndex(rightOuterJoin->GetName());
 			if (innerJoinIndex == -1)
 			{
 				loadedTables.push_back(rightOuterJoin);
-				cout << "db > Table made successfully. Its name is: \"" << rightOuterJoin.GetName() << "\".\n";
+				cout << "db > Table made successfully. Its name is: \"" << rightOuterJoin->GetName() << "\".\n";
 			}
 			else cout << "db > There is already such table! Rename or delete it in order to execute the command!\n";
 		}
@@ -269,14 +441,15 @@ void ConsoleCommandHandler::LeftOuterJoinSwitchFunc()
 
 		if (firstTableIndex != -1 && secondTableIndex != -1)
 		{
-			Table leftOuterJoin = loadedTables[firstTableIndex].LeftOuterJoin(firstCol.GetValueAsInt(),
-				loadedTables[secondTableIndex], secondCol.GetValueAsInt());
+			Table* leftOuterJoin = new Table();
+			*leftOuterJoin = loadedTables[firstTableIndex]->LeftOuterJoin(firstCol.GetValueAsInt(),
+				*(loadedTables[secondTableIndex]), secondCol.GetValueAsInt());
 
-			int innerJoinIndex = GetTableIndex(leftOuterJoin.GetName());
+			int innerJoinIndex = GetTableIndex(leftOuterJoin->GetName());
 			if (innerJoinIndex == -1)
 			{
 				loadedTables.push_back(leftOuterJoin);
-				cout << "db > Table made successfully. Its name is: \"" << leftOuterJoin.GetName() << "\".\n";
+				cout << "db > Table made successfully. Its name is: \"" << leftOuterJoin->GetName() << "\".\n";
 			}
 			else cout << "db > There is already such table! Rename or delete it in order to execute the command!\n";
 		}
@@ -288,7 +461,7 @@ void ConsoleCommandHandler::LeftOuterJoinSwitchFunc()
 	}
 }
 
-void ConsoleCommandHandler::AggregateSwitchFunc()
+void ConsoleCommandHandler::AggregateSwitchFunc() const
 {
 	cin.ignore();
 	try
@@ -304,7 +477,7 @@ void ConsoleCommandHandler::AggregateSwitchFunc()
 			searchColumn.DeSerialize(cin);
 			cin.ignore();
 
-			string searchColType = loadedTables[tableIndex].GetColType(searchColumn.GetValueAsInt());
+			string searchColType = loadedTables[tableIndex]->GetColType(searchColumn.GetValueAsInt());
 			PointerWrapper<DbType> searchValue(db::DbTypeFactory::GetNewType(searchColType));
 			searchValue->DeSerialize(cin);
 			cin.ignore();
@@ -317,7 +490,7 @@ void ConsoleCommandHandler::AggregateSwitchFunc()
 			cin >> command;
 
 			bool isValidCommand = true;
-			string targetColumnType = loadedTables[tableIndex].GetColType(targetColumn.GetValueAsInt());
+			string targetColumnType = loadedTables[tableIndex]->GetColType(targetColumn.GetValueAsInt());
 			double result = AggregateSpecificCommand(command, targetColumnType, tableIndex,
 				searchColumn, searchValue, targetColumn, isValidCommand);
 
@@ -341,20 +514,158 @@ void ConsoleCommandHandler::AggregateSwitchFunc()
 	}
 }
 
+void ConsoleCommandHandler::SerializeRelationships(const char * fileName) const
+{
+	ofstream outFile;
+	try
+	{
+		outFile.open(fileName);
+		size_t amountOfLoadedTables = loadedTables.size();
+
+		vector<int> connectedTables;
+		size_t amountOfForeignKeys = 0;
+		for (size_t ind = 0; ind < amountOfLoadedTables; ind++)
+		{
+			size_t foreignKeys = loadedTables[ind]->GetAmountOfForeignKeys();
+			if (foreignKeys != 0)
+			{
+				connectedTables.push_back(ind);
+				amountOfForeignKeys += foreignKeys;
+			}
+			else if(loadedTables[ind]->GetAmountOfConnectedTables() != 0)
+			{
+				connectedTables.push_back(ind);
+			}
+		}
+
+		outFile << connectedTables.size() << '\n';
+		for (size_t ind = 0; ind < connectedTables.size(); ind++)
+		{
+			outFile << loadedTables[connectedTables[ind]]->GetName() << '\n';
+		}
+		if (amountOfForeignKeys != 0)
+		{
+			outFile << amountOfForeignKeys << '\n';
+		}
+		for (size_t ind = 0; ind < connectedTables.size(); ind++)
+		{
+			if (loadedTables[ind]->GetAmountOfForeignKeys() != 0)
+			{
+				loadedTables[connectedTables[ind]]->SerializeRelationships(outFile);
+			}
+		}
+		
+		cout << "db > Relationships saved successfully!\n";
+	}
+	catch (const std::exception&)
+	{
+		cout << "db > Problem with opening the file or saving the relationships!\n";
+	}
+
+	outFile.close();
+}
+
+void ConsoleCommandHandler::LoadRelationships(const char * fileName)
+{
+	ifstream inFile;
+
+	try
+	{
+		inFile.open(fileName);
+
+		int amountOfTables;
+		inFile >> amountOfTables;
+		inFile.ignore();
+		if (amountOfTables > 0)
+		{
+			vector<string> tableNames;
+			for (size_t ind = 0; ind < amountOfTables; ind++)
+			{
+				string input;
+				std::getline(inFile, input);
+				tableNames.push_back(input);
+			}
+
+			size_t tableIndexesCount = 0;
+			for (size_t ind = 0; ind < amountOfTables; ind++)
+			{
+				int tableIndex = GetTableIndex(tableNames[ind]);
+				if (tableIndex != -1)
+				{
+					++tableIndexesCount;
+					cout << "db > Table successfully recognized: " << tableNames[ind] << '\n';
+				}
+				else
+				{
+					cout << "db > Missing table: " << tableNames[ind] << '\n';
+				}
+			}
+
+			if (tableNames.size() != tableIndexesCount)
+			{
+				cout << "db > Some table are missing. Aborting command...\n";
+			}
+			else
+			{
+				int amountOfRelations;
+				inFile >> amountOfRelations;
+				inFile.ignore();
+				if (amountOfRelations > 0)
+				{
+					for (size_t ind = 0; ind < amountOfRelations; ind++)
+					{
+						Text tableName;
+						tableName.DeSerialize(inFile);
+						int fistTableIndex = GetTableIndex(tableName.GetValueAsString());
+						
+						int column;
+						inFile >> column;
+						inFile.ignore();
+						
+						tableName.DeSerialize(inFile);
+						inFile.ignore();
+						int secondTableIndex = GetTableIndex(tableName.GetValueAsString());
+
+						if (secondTableIndex == -1 || fistTableIndex == -1)
+						{
+							throw std::invalid_argument("Invalid relationships!");
+						}
+
+						loadedTables[fistTableIndex]->SetForeignKey(column, loadedTables[secondTableIndex]);
+					}
+					cout << "db > Relationships loaded successfully!\n";
+
+				}
+				else cout << "db > No relationships to load!\n";
+			}
+		}
+		else
+		{
+			cout << "db > There are no relationships to load!\n";
+		}
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid relationship file. " << e.what() << "\n";
+	}
+
+	inFile.close();
+}
+
 double ConsoleCommandHandler::AggregateSpecificCommand(const string &command, const string &targetColumnType, int tableIndex,
-	const Integer &searchColumn, PointerWrapper<db::DbType> &searchValue, const Integer &targetColumn, bool &isValidCommand)
+	const Integer &searchColumn, PointerWrapper<db::DbType> &searchValue, const Integer &targetColumn, bool &isValidCommand) const
 {
 	double result = 0;
 	if (command == "sum")
 	{
 		if (targetColumnType == "Decimal")
 		{
-			result = loadedTables[tableIndex].Aggregate<double>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+			result = loadedTables[tableIndex]->Aggregate<double>(searchColumn.GetValueAsInt(), searchValue.operator->(),
 				targetColumn.GetValueAsInt(), db::TableUtilities::SumOfNumbers, 0.0);
 		}
 		else
 		{
-			result = loadedTables[tableIndex].Aggregate<int>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+			result = loadedTables[tableIndex]->Aggregate<int>(searchColumn.GetValueAsInt(), searchValue.operator->(),
 				targetColumn.GetValueAsInt(), db::TableUtilities::SumOfNumbers, 0);
 		}
 	}
@@ -362,12 +673,12 @@ double ConsoleCommandHandler::AggregateSpecificCommand(const string &command, co
 	{
 		if (targetColumnType == "Decimal")
 		{
-			result = loadedTables[tableIndex].Aggregate<double>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+			result = loadedTables[tableIndex]->Aggregate<double>(searchColumn.GetValueAsInt(), searchValue.operator->(),
 				targetColumn.GetValueAsInt(), db::TableUtilities::ProductOfNumbers, 1.0);
 		}
 		else
 		{
-			result = loadedTables[tableIndex].Aggregate<int>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+			result = loadedTables[tableIndex]->Aggregate<int>(searchColumn.GetValueAsInt(), searchValue.operator->(),
 				targetColumn.GetValueAsInt(), db::TableUtilities::ProductOfNumbers, 1);
 		}
 	}
@@ -375,12 +686,12 @@ double ConsoleCommandHandler::AggregateSpecificCommand(const string &command, co
 	{
 		if (targetColumnType == "Decimal")
 		{
-			result = loadedTables[tableIndex].Aggregate<double>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+			result = loadedTables[tableIndex]->Aggregate<double>(searchColumn.GetValueAsInt(), searchValue.operator->(),
 				targetColumn.GetValueAsInt(), db::TableUtilities::MaximumOfNumbers, std::numeric_limits<double>::min());
 		}
 		else
 		{
-			result = loadedTables[tableIndex].Aggregate<int>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+			result = loadedTables[tableIndex]->Aggregate<int>(searchColumn.GetValueAsInt(), searchValue.operator->(),
 				targetColumn.GetValueAsInt(), db::TableUtilities::MaximumOfNumbers, std::numeric_limits<int>::min());
 		}
 	}
@@ -388,12 +699,12 @@ double ConsoleCommandHandler::AggregateSpecificCommand(const string &command, co
 	{
 		if (targetColumnType == "Decimal")
 		{
-			result = loadedTables[tableIndex].Aggregate<double>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+			result = loadedTables[tableIndex]->Aggregate<double>(searchColumn.GetValueAsInt(), searchValue.operator->(),
 				targetColumn.GetValueAsInt(), db::TableUtilities::MinimumOfNumbers, std::numeric_limits<double>::max());
 		}
 		else
 		{
-			result = loadedTables[tableIndex].Aggregate<int>(searchColumn.GetValueAsInt(), searchValue.operator->(),
+			result = loadedTables[tableIndex]->Aggregate<int>(searchColumn.GetValueAsInt(), searchValue.operator->(),
 				targetColumn.GetValueAsInt(), db::TableUtilities::MinimumOfNumbers, std::numeric_limits<int>::max());
 		}
 	}
@@ -405,7 +716,7 @@ double ConsoleCommandHandler::AggregateSpecificCommand(const string &command, co
 	return result;
 }
 
-void ConsoleCommandHandler::CountSwitchFunc()
+void ConsoleCommandHandler::CountSwitchFunc() const
 {
 	cin.ignore();
 	try
@@ -421,11 +732,11 @@ void ConsoleCommandHandler::CountSwitchFunc()
 			searchColumn.DeSerialize(cin);
 			cin.ignore();
 
-			string type = loadedTables[tableIndex].GetColType(searchColumn.GetValueAsInt());
+			string type = loadedTables[tableIndex]->GetColType(searchColumn.GetValueAsInt());
 			PointerWrapper<DbType> valueToDeserialize(db::DbTypeFactory::GetNewType(type));
 			valueToDeserialize->DeSerialize(cin);
 
-			int counter = loadedTables[tableIndex].CountCertainRows(searchColumn.GetValueAsInt(), valueToDeserialize.operator->());
+			int counter = loadedTables[tableIndex]->CountCertainRows(searchColumn.GetValueAsInt(), valueToDeserialize.operator->());
 			cout << "db > Amount of such rows: " << counter << '\n';
 		}
 		else
@@ -451,6 +762,16 @@ void ConsoleCommandHandler::DeleteTableSwitchFunc()
 
 		if (tableIndex != -1)
 		{
+			size_t amountOfColumns = loadedTables[tableIndex]->GetAmountOfColumns();
+			for (size_t ind = 1; ind < amountOfColumns; ind++)
+			{
+				if (loadedTables[tableIndex]->GetColType(ind) == "Integer")
+				{
+					loadedTables[tableIndex]->RemoveForeignKey(ind);
+				}
+			}
+
+			delete loadedTables[tableIndex];
 			loadedTables.erase(loadedTables.begin() + tableIndex);
 			cout << "db > Table deleted successfully!\n";
 		}
@@ -473,7 +794,7 @@ void ConsoleCommandHandler::CreateTableSwitchFunc()
 
 		if (GetTableIndex(tableName.GetValueAsString()) == -1)
 		{
-			loadedTables.push_back(Table(tableName.GetValueAsString()));
+			loadedTables.push_back(new Table(tableName.GetValueAsString()));
 			cout << "db > Table created successfully!\n";
 		}
 		else cout << "db > There is already such table!\n";
@@ -502,7 +823,7 @@ void ConsoleCommandHandler::RenameTableSwitchFunc()
 			int newNameIndex = GetTableIndex(tableName.GetValueAsString());
 			if (newNameIndex == -1)
 			{
-				loadedTables[tblIndex].SetName(tableName.GetValueAsString());
+				loadedTables[tblIndex]->SetName(tableName.GetValueAsString());
 				cout << "db > Table renamed successfully!\n";
 			}
 			else cout << "db > A table with the new name already exist!\n";
@@ -544,14 +865,15 @@ void ConsoleCommandHandler::InnerJoinSwitchFunc()
 
 		if (firstTableIndex != -1 && secondTableIndex != -1)
 		{
-			Table innerJoin = loadedTables[firstTableIndex].InnerJoin(firstCol.GetValueAsInt(),
-				loadedTables[secondTableIndex], secondCol.GetValueAsInt());
+			Table* innerJoin = new Table();
+			*innerJoin = loadedTables[firstTableIndex]->InnerJoin(firstCol.GetValueAsInt(),
+				*loadedTables[secondTableIndex], secondCol.GetValueAsInt());
 
-			int innerJoinIndex = GetTableIndex(innerJoin.GetName());
+			int innerJoinIndex = GetTableIndex(innerJoin->GetName());
 			if (innerJoinIndex == -1)
 			{
 				loadedTables.push_back(innerJoin);
-				cout << "db > Table made successfully. Its name is: \"" << innerJoin.GetName() << "\".\n";
+				cout << "db > Table made successfully. Its name is: \"" << innerJoin->GetName() << "\".\n";
 			}
 			else cout << "db > There is already such table! Rename or delete it in order to execute the command!\n";
 		}
@@ -576,19 +898,19 @@ void ConsoleCommandHandler::InsertSwitchFunc()
 		int tableIndex = GetTableIndex(tableName.GetValueAsString());
 		if (tableIndex != -1)
 		{
-			size_t amountOfCols = loadedTables[tableIndex].GetAmountOfColumns();
+			size_t amountOfCols = loadedTables[tableIndex]->GetAmountOfColumns();
 
 			vector<PointerWrapper<DbType>> valueTypes;
 			for (size_t ind = 1; ind < amountOfCols; ind++)
 			{
 				valueTypes.push_back(
-					PointerWrapper<DbType>(db::DbTypeFactory::GetNewType(loadedTables[tableIndex].GetColType(ind)))); //dynamically allocated
+					PointerWrapper<DbType>(db::DbTypeFactory::GetNewType(loadedTables[tableIndex]->GetColType(ind)))); //dynamically allocated
 			}
 
 			Row valuesToGet;
 			valuesToGet.Deserialize(cin, valueTypes);
 			cin.putback('\n');
-			loadedTables[tableIndex].MakeNewRow(valuesToGet);
+			loadedTables[tableIndex]->MakeNewRow(valuesToGet);
 
 			cout << "db > Table row added successfully!\n";
 		}
@@ -621,10 +943,10 @@ void ConsoleCommandHandler::DeleteSwitchFunc()
 			cin.ignore();
 
 			PointerWrapper<DbType> valueToSearch(db::DbTypeFactory::GetNewType(
-				loadedTables[tableIndex].GetColType(searchCol.GetValueAsInt())));
+				loadedTables[tableIndex]->GetColType(searchCol.GetValueAsInt())));
 			valueToSearch->DeSerialize(cin);
 
-			loadedTables[tableIndex].DeleteCertainRows(searchCol.GetValueAsInt(), valueToSearch.operator->());
+			loadedTables[tableIndex]->DeleteCertainRows(searchCol.GetValueAsInt(), valueToSearch.operator->());
 
 			cout << "db > Rows were deleted successfully!\n";
 		}
@@ -653,7 +975,7 @@ void ConsoleCommandHandler::UpdateSwitchFunc()
 			colToSearch.DeSerialize(cin);
 			cin.ignore();
 
-			string searchColType = loadedTables[tableIndex].GetColType(colToSearch.GetValueAsInt());
+			string searchColType = loadedTables[tableIndex]->GetColType(colToSearch.GetValueAsInt());
 			PointerWrapper<DbType> valueToSearch(db::DbTypeFactory::GetNewType(searchColType));
 			valueToSearch->DeSerialize(cin);
 			cin.ignore();
@@ -662,13 +984,13 @@ void ConsoleCommandHandler::UpdateSwitchFunc()
 			colToChange.DeSerialize(cin);
 			cin.ignore();
 
-			string typeToChange = loadedTables[tableIndex].GetColType(colToChange.GetValueAsInt());
+			string typeToChange = loadedTables[tableIndex]->GetColType(colToChange.GetValueAsInt());
 			PointerWrapper<DbType> valueToChangeWith(db::DbTypeFactory::GetNewType(typeToChange));
 
 			valueToChangeWith->DeSerialize(cin);
 			//no need of cin.ignore();
 
-			loadedTables[tableIndex].UpdateCertainRows(colToSearch.GetValueAsInt(), valueToSearch.operator->(),
+			loadedTables[tableIndex]->UpdateCertainRows(colToSearch.GetValueAsInt(), valueToSearch.operator->(),
 				colToChange.GetValueAsInt(), valueToChangeWith.operator->());
 
 			cout << "db > Table successfully updated!\n";
@@ -706,7 +1028,7 @@ void ConsoleCommandHandler::AddColumnSwitchFunc()
 	}
 }
 
-void ConsoleCommandHandler::DescribeTableFunc()
+void ConsoleCommandHandler::DescribeTableFunc() const
 {
 	cin.ignore();
 	try
@@ -739,7 +1061,7 @@ void ConsoleCommandHandler::LoadTableSwitchFunc(std::string &input)
 	}
 }
 
-void ConsoleCommandHandler::PrintPreviewSwitchFunc(std::string &input)
+void ConsoleCommandHandler::PrintPreviewSwitchFunc(std::string &input) const
 {
 	cin.ignore();
 	try
@@ -755,7 +1077,7 @@ void ConsoleCommandHandler::PrintPreviewSwitchFunc(std::string &input)
 		}
 		else
 		{
-			PrintTableInPreviewMode(tableName.GetValueAsString(), loadedTables[tableIndex].GetRows());
+			PrintTableInPreviewMode(tableName.GetValueAsString(), loadedTables[tableIndex]->GetRows());
 		}
 	}
 	catch (const std::exception& e)
@@ -765,7 +1087,7 @@ void ConsoleCommandHandler::PrintPreviewSwitchFunc(std::string &input)
 	}
 }
 
-void ConsoleCommandHandler::SelectSwitchFunc()
+void ConsoleCommandHandler::SelectSwitchFunc() const
 {
 	cin.ignore();
 	try
@@ -790,18 +1112,18 @@ void ConsoleCommandHandler::SelectSwitchFunc()
 			{
 				cout << "db > There is no such table!\n";
 			}
-			else if (columnToSearch >= loadedTables[tableInd].GetAmountOfColumns() || columnToSearch < 0)
+			else if (columnToSearch >= loadedTables[tableInd]->GetAmountOfColumns() || columnToSearch < 0)
 			{
 				cout << "db > Column is out of range!\n";
 			}
 			else
 			{
-				string columnType = loadedTables[tableInd].GetColType(columnToSearch);
+				string columnType = loadedTables[tableInd]->GetColType(columnToSearch);
 				PointerWrapper<DbType> typeToDeserialize(db::DbTypeFactory::GetNewType(columnType));
 				typeToDeserialize->DeSerialize(cin);
 
 				PrintTableInPreviewMode(tableName.GetValueAsString(),
-					loadedTables[tableInd].SelectCertainRows(columnToSearch, typeToDeserialize.operator->()));
+					loadedTables[tableInd]->SelectCertainRows(columnToSearch, typeToDeserialize.operator->()));
 			}
 		}
 	}
@@ -835,24 +1157,26 @@ void ConsoleCommandHandler::SaveTableSwitchFunc()
 
 void ConsoleCommandHandler::PrintHelp() const
 {
-	cout << "*** All commands start with a capital letter without quotes.\n" << 
+	cout << "*** All commands start with a capital letter without quotes.\n" <<
 		"*** All table names or text(string) cells should be typed with quotes!\n" <<
 		"*** Database types are: Text, Integer, Decimal. Type them without quotes!\n" <<
 		"*** Cells can be null - null is typed NULL in the terminal without quotes.\n"
-		"*** Characters \" and \\ should be escaped in the table names and text(string) cells with backslash \\ !\n" 
+		"*** Characters \" and \\ should be escaped in the table names and text(string) cells with backslash \\ !\n"
 		"*** Id_auto column should not be entered. It is auto generated. You can NOT change or delete it!\n"
-		"*** Agrregate operations are: sum, product, maximum, minimum\n\n"<<
-		"Commands:\n" 
-		"1) Load \"file_name\" - loads a single table from a file\n" 
-		"2) Showtables - prints all the table names currently loaded\n" 
-		"3) Describe \"table_name\" - prints the description of a table in case it is loaded.\n" 
-		"4) Print \"table_name\" - prints the table content in a preview mode.\n" 
+		"*** Self relationship is supported.\n"
+		"*** If no relationship file is loaded database performs as there are none of them.\n"
+		"*** Agrregate operations are: sum, product, maximum, minimum.\n\n" <<
+		"Commands:\n"
+		"1) Load \"file_name\" - loads a single table from a file\n"
+		"2) Showtables - prints all the table names currently loaded\n"
+		"3) Describe \"table_name\" - prints the description of a table in case it is loaded.\n"
+		"4) Print \"table_name\" - prints the table content in a preview mode.\n"
 		"5) Save \"table_name\" \"file_name\" - saves the table content in a file.\n"
 		"6) Select column_number \"table_name\" <valueToSearch> - prints rows with the selected value at column column_number.\n"
 		"7) AddColumn \"table_name\" \"column_name\" column_type - adds a new column to the selected table.\n"
 		"8) Update \"table_name\" colToSearch_number <valueToSearch> colToChange_number <updateValue> - updates certain rows of the table.\n"
 		"9) Delete \"table_name\" colToSearch_number <valueToSearch> - deletes certain rows of the table.\n"
-		"10) Insert \"table name\" <column 1> … <column n> - insert a row in the table with the entered values.\n"
+		"10) Insert \"table name\" <column 1> ... <column n> - insert a row in the table with the entered values.\n"
 		"11) InnerJoin \"first_table\" column_number \"second_table\" column_number - makes an inner join table.\n"
 		"12) LeftOuterJoin \"first_table\" column_number \"second_table\" column_number - makes a left outer join table.\n"
 		"13) RightOuterJoin \"first_table\" column_number \"second_table\" column_number - makes a right outer join table.\n"
@@ -863,7 +1187,27 @@ void ConsoleCommandHandler::PrintHelp() const
 		"18) Aggregate \"table_name\" colToSearch_number <valueToSearch> targetColumn_number <operation> - performs the selected operation on the rows with the valueToSearch.\n"
 		"19) SetColNullAcceptance \"table_name\" column_number 0(or 1) - makes NULL an acceptable(or non acceptable: 1 -yes, 0 -no) value for the specific column.\n"
 		"20) SetForeignKey \"table_name\" column_number \"foreignKeyTable_name\" - makes a MANY to ONE relationship between the tables.\n"
-		"21) Exit - program exit.\n\n";
+		"21) RemoveForeignKey \"table_name\" column_number - removes the foreign key and MANY to ONE relationship.\n"
+		"22) MakeManyToManyTable \"firstTable_name\" \"secondTable_name\" - makes MANY to MANY table from the table ids.\n"
+		"23) SaveRelationships \"fileName\" - saves the current relationships.\n"
+		"24) LoadRelationships \"fileName\" - loads the relationships if it is possible.\n"
+		"25) GetRandomRowId \"tableName\" - gets a random row id from the table.\n"
+		"26) Exit - program exit.\n\n";
+}
+
+void ConsoleCommandHandler::PrintRelationshipSystem() const
+{
+	cout << "db > RelationShip system:\n";
+
+	size_t amountOfTables = loadedTables.size();
+	for (size_t ind = 0; ind < amountOfTables; ind++)
+	{
+		string result = loadedTables[ind]->GetRelationShipConnectionsAsString();
+		if (result != "")
+		{
+			cout << result;
+		} 
+	}
 }
 
 void ConsoleCommandHandler::PrintTableDescription(const string & tableName) const
@@ -875,7 +1219,7 @@ void ConsoleCommandHandler::PrintTableDescription(const string & tableName) cons
 		return;
 	}
 
-	cout << "db > " << loadedTables[tableIndex].GetDescription() << '\n';
+	cout << "db > " << loadedTables[tableIndex]->GetDescription() << '\n';
 }
 
 void ConsoleCommandHandler::PrintTableInPreviewMode(const string & tableName, const vector<Row>& tableRows) const
@@ -889,8 +1233,8 @@ void ConsoleCommandHandler::PrintTableInPreviewMode(const string & tableName, co
 	system("cls");
 	int tableInd = GetTableIndex(tableName);
 
-	vector<string> tableHeaders = loadedTables[tableInd].GetColHeaders();
-	vector<size_t> setWSizes = loadedTables[tableInd].GetColumnsMaxLengths();
+	vector<string> tableHeaders = loadedTables[tableInd]->GetColHeaders();
+	vector<size_t> setWSizes = loadedTables[tableInd]->GetColumnsMaxLengths();
 	
 	size_t amountOfRowsToPrint = GetAmountOfRowsToPrint(tableInd);
 	size_t pages = tableRows.size() / amountOfRowsToPrint;
@@ -969,7 +1313,7 @@ size_t ConsoleCommandHandler::GetAmountOfRowsToPrint(size_t tableIndex) const
 	columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
 	rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 
-	vector<size_t> sizes = loadedTables[tableIndex].GetColumnsMaxLengths();
+	vector<size_t> sizes = loadedTables[tableIndex]->GetColumnsMaxLengths();
 	size_t rowLength = 0;
 	for (size_t ind = 0; ind < sizes.size(); ind++)
 	{
@@ -995,10 +1339,10 @@ void ConsoleCommandHandler::LoadTableFromFile(const char * fileName)
 	{
 		inFile.open(fileName);
 
-		Table tableToGet;
-		inFile >> tableToGet;
+		Table* tableToGet = new Table();
+		inFile >> *tableToGet;
 
-		int tableIndex = GetTableIndex(tableToGet.GetName());
+		int tableIndex = GetTableIndex(tableToGet->GetName());
 
 		if (tableIndex == -1)
 		{
@@ -1007,7 +1351,7 @@ void ConsoleCommandHandler::LoadTableFromFile(const char * fileName)
 		}
 		else
 		{
-			cout << "db > Such tables with name \"" << tableToGet.GetName() << "\" is already loaded!\n";
+			cout << "db > Such tables with name \"" << tableToGet->GetName() << "\" is already loaded!\n";
 		}
 	}
 	catch (const std::exception& e)
@@ -1028,7 +1372,7 @@ void ConsoleCommandHandler::SaveTableToFile(const char * fileName, const string 
 		int tableIndex = GetTableIndex(tableName);
 		if (tableIndex != -1)
 		{
-			outFile << loadedTables[tableIndex];
+			outFile << *(loadedTables[tableIndex]);
 			cout << "db > Table successfully saved!\n";
 		}
 		else
@@ -1060,7 +1404,7 @@ void ConsoleCommandHandler::AddColumn(const string & tableName, const string & c
 		return;
 	}
 
-	loadedTables[tableIndex].AddNewColumn(colName, type);
+	loadedTables[tableIndex]->AddNewColumn(colName, type);
 	cout << "db > Column successfully added!\n";
 }
 
@@ -1077,10 +1421,10 @@ void ConsoleCommandHandler::PrintTables() const
 
 	for (size_t ind = 0; ind < tablesAmount - 1; ind++)
 	{
-		cout << "\"" << loadedTables[ind].GetName() << "\", ";
+		cout << "\"" << loadedTables[ind]->GetName() << "\", ";
 	}
 
-	cout << "\"" << loadedTables[tablesAmount - 1].GetName() << "\"\n";
+	cout << "\"" << loadedTables[tablesAmount - 1]->GetName() << "\"\n";
 
 }
 
@@ -1092,7 +1436,7 @@ int ConsoleCommandHandler::GetTableIndex(const string & tableName) const
 	size_t ind = 0;
 	while (ind < len && !isFound)
 	{
-		if (tableName == loadedTables[ind].GetName())
+		if (tableName == loadedTables[ind]->GetName())
 		{
 			isFound = true;
 		}
@@ -1105,4 +1449,14 @@ int ConsoleCommandHandler::GetTableIndex(const string & tableName) const
 	}
 
 	return --ind;
+}
+
+ConsoleCommandHandler::~ConsoleCommandHandler()
+{
+	size_t amountOfTables = loadedTables.size();
+
+	for (size_t ind = 0; ind < amountOfTables; ind++)
+	{
+		delete loadedTables[ind];
+	}
 }
