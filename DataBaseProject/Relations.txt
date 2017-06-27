@@ -1,7 +1,5 @@
-3
-Customers
-Orders
-Persons
 2
+Orders
+Customers
+1
 "Orders" 2 "Customers"
-"Persons" 2 "Persons"

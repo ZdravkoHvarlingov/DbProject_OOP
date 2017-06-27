@@ -179,6 +179,11 @@ size_t db::Table::GetAmountOfConnectedTables() const
 	return connectedTables.size();
 }
 
+bool db::Table::IsRelatedToOtherTables() const
+{
+	return connectedTables.size() > 0;
+}
+
 void db::Table::SetName(string _name)
 {
 	name = _name;
@@ -261,6 +266,26 @@ void db::Table::AddNewColumn(const string& _colName, const  string& _colType)  /
 	{
 		rows[ind].AddNullColumn(_colType);
 	}
+}
+
+void db::Table::DeleteColumn(size_t column)
+{
+	if (column < 1 || column >= headerCols.size())
+	{
+		throw OutOfRangeException("Invalid column!");
+	}
+
+	if (headerCols[column].foreignKeyTable != nullptr)
+	{
+		RemoveForeignKey(column);
+	}
+
+	size_t amountOfRows = rows.size();
+	for (size_t ind = 0; ind < amountOfRows; ind++)
+	{
+		rows[ind].DeleteColumn(column);
+	}
+	headerCols.erase(headerCols.begin() + column);
 }
 
 void db::Table::DeleteRow(size_t rowIndex)

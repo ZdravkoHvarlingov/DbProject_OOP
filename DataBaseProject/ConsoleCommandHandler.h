@@ -40,6 +40,7 @@ private:
 	void PrintTables() const;
 	int GetTableIndex(const string& tableName) const;
 
+	void DeleteColumnSwitchFunc();
 	void GetRandomRowIdSwitchFunc() const;
 	void LoadRelationshipsSwitchFunc();
 	void SaveRelationshipsSwitchFunc();

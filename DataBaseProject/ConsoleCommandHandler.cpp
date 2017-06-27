@@ -72,6 +72,10 @@ void ConsoleCommandHandler::StartListening()
 		{
 			AddColumnSwitchFunc();
 		}
+		else if (input == "DeleteColumn")
+		{
+			DeleteColumnSwitchFunc();
+		}
 		else if (input == "Update")
 		{
 			UpdateSwitchFunc();
@@ -161,6 +165,36 @@ void ConsoleCommandHandler::StartListening()
 	}
 
 	cout << "db > Program exit...\n";
+}
+
+void ConsoleCommandHandler::DeleteColumnSwitchFunc()
+{
+	cin.ignore();
+
+	try
+	{
+		Text tableName;
+		tableName.DeSerialize(cin);
+		cin.ignore();
+		int tableIndex = GetTableIndex(tableName.GetValueAsString());
+
+		if (tableIndex != -1)
+		{
+			Integer columnToDelete;
+			columnToDelete.DeSerialize(cin);
+
+			loadedTables[tableIndex]->DeleteColumn(columnToDelete.GetValueAsInt());
+			cout << "db > Column was deleted successfully!\n";
+		}
+		else
+		{
+			cout << "db > There is no such table!\n";
+		}
+	}
+	catch (const std::exception& e)
+	{
+		cout << "db > Invalid command argumets! " << e.what() << '\n';
+	}
 }
 
 void ConsoleCommandHandler::GetRandomRowIdSwitchFunc() const
@@ -762,18 +796,22 @@ void ConsoleCommandHandler::DeleteTableSwitchFunc()
 
 		if (tableIndex != -1)
 		{
-			size_t amountOfColumns = loadedTables[tableIndex]->GetAmountOfColumns();
-			for (size_t ind = 1; ind < amountOfColumns; ind++)
+			if (!loadedTables[tableIndex]->IsRelatedToOtherTables())
 			{
-				if (loadedTables[tableIndex]->GetColType(ind) == "Integer")
+				size_t amountOfColumns = loadedTables[tableIndex]->GetAmountOfColumns();
+				for (size_t ind = 1; ind < amountOfColumns; ind++)
 				{
-					loadedTables[tableIndex]->RemoveForeignKey(ind);
+					if (loadedTables[tableIndex]->GetColType(ind) == "Integer")
+					{
+						loadedTables[tableIndex]->RemoveForeignKey(ind);
+					}
 				}
-			}
 
-			delete loadedTables[tableIndex];
-			loadedTables.erase(loadedTables.begin() + tableIndex);
-			cout << "db > Table deleted successfully!\n";
+				delete loadedTables[tableIndex];
+				loadedTables.erase(loadedTables.begin() + tableIndex);
+				cout << "db > Table deleted successfully!\n";
+			}
+			else cout << "db > Table can NOT be delete because it is connected to other table as foreign key column!\n";
 		}
 		else cout << "db > There is NO such table!\n";
 	}
@@ -1192,7 +1230,8 @@ void ConsoleCommandHandler::PrintHelp() const
 		"23) SaveRelationships \"fileName\" - saves the current relationships.\n"
 		"24) LoadRelationships \"fileName\" - loads the relationships if it is possible.\n"
 		"25) GetRandomRowId \"tableName\" - gets a random row id from the table.\n"
-		"26) Exit - program exit.\n\n";
+		"26) DeleteColumn \"tableName\" column_number - deletes a certain column in the specified table.\n"
+		"27) Exit - program exit.\n\n";
 }
 
 void ConsoleCommandHandler::PrintRelationshipSystem() const

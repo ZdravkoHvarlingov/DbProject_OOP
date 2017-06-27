@@ -34,11 +34,13 @@ namespace db
 		string SerializeRelationships(std::ostream& outStr) const;
 		size_t GetAmountOfForeignKeys() const;
 		size_t GetAmountOfConnectedTables() const;
+		bool IsRelatedToOtherTables() const;
 
 		void SetName(string _name);
 		void MakeNewRow();
 		void MakeNewRow(const Row& _rowToAdd);
-		void AddNewColumn(const string& _colName,const string& _colType);  //, bool _canBeNull);
+		void AddNewColumn(const string& _colName,const string& _colType);
+		void DeleteColumn(size_t column);
 
 		Table InnerJoin(size_t firstCol, const Table& secondTable, size_t secondCol) const;
 		Table LeftOuterJoin(size_t firstCol, const Table& secondTable, size_t secondCol) const;

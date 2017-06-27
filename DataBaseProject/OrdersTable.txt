@@ -1,10 +1,8 @@
 Orders
+3
+"Id_auto" Integer 0 "ProductName" Text 1 "CustomerId" Integer 0 
 4
-"Id_auto" Integer 0 "Type" Text 1 "CustomerId" Integer 1 "NothingHere" Decimal 1
-6
-0 "Spoon" 1 NULL
-1 "adjaba" 0 NULL
-2 "Ivka e moq we" 0 NULL
-3 "Knife" 9 NULL
-4 "Audi2017" 4 NULL
-5 "GolfIV" 3 NULL
+0 "Bag" 0
+1 "Something" 23
+2 "Mouse" 1
+3 "Bottle" 11

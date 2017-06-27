@@ -1,16 +1,31 @@
 Customers
-3
-"Id_auto" Integer 0 "Name" Text 1 "Age" Integer 1 
-12
-0 "zdravko" 20
-1 "Ivka" 19
-2 "Qsko" 20
-3 "Az sum" 55
-4 "Teodora" 46
-5 "Pencho" 47
-6 "Galina" 26
-7 "Bilqna" 27
-8 "Tatqna" 50
-9 "George" 55
-10 "Kremena" 10
-11 "Dancho" 20
+4
+"Id_auto" Integer 0 "Name" Text 1 "Age" Integer 1 "Rate" Decimal 1 
+27
+0 "Zdravko" 20 1.200
+1 "Ivan" 19 2.333
+2 "Iveta" 20 1.100
+4 "Kiro" 13 1.000
+5 "Somebody" 13 13.130
+6 "SomeName" 23 10.111
+7 "Jordan" 20 1.200
+8 "George" 19 2.333
+9 "Demetra" 20 1.100
+10 "Teodora" 32 3.122
+11 "Pencho" 13 1.000
+12 "Kalin" 65 10.123
+13 "Slavi" 10 123.310
+14 "Andrei" 13 13.130
+15 "Radoslav" 23 10.111
+16 "Eva" 20 1.200
+17 "Polina" 19 2.333
+18 "Cveta" 20 1.100
+19 "Dimitrina" 32 3.122
+20 "Svetla" 13 1.000
+21 "Nikolai" 65 10.123
+22 "Apostol" 10 123.310
+23 "Hristomir" 13 13.130
+24 "Svetoslav" 23 10.111
+25 "Pesho" 65 10.123
+26 "Ivanina" 10 123.310
+27 "NewName" 123 1.200
