@@ -3,26 +3,27 @@ Database project
 
 Database project - basic database operations.
 
-**All commands start with a capital letter without quotes.
+**All commands start with a capital letter without quotes.**
 
-**All table names or text(string) cells should be typed with quotes!
+**All table names or text(string) cells should be typed with quotes!**
 
-**Database types are: Text, Integer, Decimal. Type them without quotes!
+**Database types are: Text, Integer, Decimal. Type them without quotes!**
 
-**Cells can be null - null is typed NULL in the terminal without quotes.
+**Cells can be null - null is typed NULL in the terminal without quotes.**
 
-**Characters \" and \\ should be escaped in the table names and text(string) cells with backslash \\ !
+**Characters \" and \\ should be escaped in the table names and text(string) cells with backslash \\ !**
 
-**Id_auto column should not be entered. It is auto generated. You can NOT change or delete it!
+**Id_auto column should not be entered. It is auto generated. You can NOT change or delete it!**
 
-**Self relationship is supported.
+**Self relationship is supported.**
 
-**If no relationship file is loaded database performs as there are none of them.
+**If no relationship file is loaded database performs as there are none of them.**
 
-**Agrregate operations are: sum, product, maximum, minimum.
+**Agrregate operations are: sum, product, maximum, minimum.**
 
 
 Commands:
+
 	1) Load \"file_name\" - loads a single table from a file
 	
 	2) Showtables - prints all the table names currently loaded
